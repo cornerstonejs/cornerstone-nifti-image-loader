@@ -2,8 +2,8 @@
 <html>
 <head>
     <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by cornerstone -->
-    <link href="../bootstrap.min.css" rel="stylesheet">
-    <link href="../cornerstone.min.css" rel="stylesheet">
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <link href="cornerstone.min.css" rel="stylesheet">
 </head>
 <body>
 <div class="container">
@@ -77,9 +77,9 @@
     <div class="row">
         <form id="form" class="form-horizontal">
             <div class="form-group">
-                <label class="control-label col-sm-1" for="wadoURL">URL</label>
+                <label class="control-label col-sm-1" for="niftiURL">URL</label>
                 <div class="col-sm-8">
-                    <input class="form-control" type="text" id="wadoURL" placeholder="Enter WADO URL" value="https://raw.githubusercontent.com/cornerstonejs/cornerstoneWADOImageLoader/master/testImages/CT2_J2KR">
+                    <input class="form-control" type="text" id="niftiURL" placeholder="Enter NIFTI URL" value="data/avg152T1_LR_nifti.nii">
                 </div>
                 <div class="col-sm-3">
                     <button class="form-control" type="button" id="downloadAndView" class="btn btn-primary">Download and View</button>
@@ -109,7 +109,7 @@
                  unselectable='on'
                  onselectstart='return false;'
                  onmousedown='return false;'>
-                <div id="dicomImage"
+                <div id="niftiImage"
                      style="width:512px;height:512px;top:0px;left:0px; position:absolute">
                 </div>
             </div>
@@ -145,55 +145,49 @@
 </body>
 
 <!-- include the cornerstone library -->
-<script src="../cornerstone.min.js"></script>
-<SCRIPT src="../cornerstoneMath.min.js"></SCRIPT>
-<SCRIPT src="../cornerstoneTools.min.js"></SCRIPT>
+<script src="cornerstone.js"></script>
+<SCRIPT src="cornerstoneMath.js"></SCRIPT>
+<SCRIPT src="cornerstoneTools.js"></SCRIPT>
 
-<!-- include the dicomParser library as the WADO image loader depends on it -->
-<script src="../dicomParser.min.js"></script>
+<!-- include the nifti reader NIFTI-Reader-JS library  -->
+<script src="nifti-reader.js"></script>
 
 <!-- BEGIN Optional Codecs -->
 
 <!-- OpenJPEG based jpeg 2000 codec -->
-<script src="../../codecs/openJPEG-FixedMemory.js"></script>
+<!-- <script src="../../codecs/openJPEG-FixedMemory.js"></script> -->
 
 <!-- PDF.js based jpeg 2000 codec -->
 <!-- NOTE: do not load the OpenJPEG codec if you use this one -->
 <!-- <script src="../../codecs/jpx.min.js"></script> -->
 
 <!-- JPEG-LS codec -->
-<script src="../../codecs/charLS-FixedMemory-browser.js"></script>
+<!-- <script src="../../codecs/charLS-FixedMemory-browser.js"></script> -->
 
 <!-- JPEG Lossless codec -->
-<script src="../../codecs/jpegLossless.js"></script>
+<!-- <script src="../../codecs/jpegLossless.js"></script> -->
 
 <!-- JPEG Baseline codec -->
-<script src="../../codecs/jpeg.js"></script>
+<!-- <script src="../../codecs/jpeg.js"></script> -->
 
 <!-- Deflate transfer syntax codec -->
-<script src="../../codecs/pako.min.js"></script>
+<!-- <script src="../../codecs/pako.min.js"></script> -->
 
 <!-- END Optional Codecs -->
 
-<!-- include the cornerstoneWADOImageLoader library -->
-<script src="../../dist/cornerstoneWADOImageLoader.js"></script>
+<!-- include the cornerstoneNIFTIImageLoader library -->
+<script src="../../dist/cornerstoneNIFTIImageLoader.js"></script>
 
-<script src="../dicomfile/uids.js"></script>
+<!-- <script src="../dicomfile/uids.js"></script> -->
 
 <script>
-    cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-
-    cornerstoneWADOImageLoader.configure({
-        beforeSend: function(xhr) {
-            // Add custom headers here (e.g. auth tokens)
-            //xhr.setRequestHeader('APIKEY', 'my auth token');
-        }
-    });
+    cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
+    // cornerstoneNIFTIImageLoader.external.niftiReader = nifti;
 
     var loaded = false;
 
     function loadAndViewImage(imageId) {
-        var element = document.getElementById('dicomImage');
+        var element = document.getElementById('niftiImage');
 
         try {
             var start = new Date().getTime();
@@ -213,76 +207,66 @@
                     loaded = true;
                 }
 
-                function getTransferSyntax() {
-                    const value = image.data.string('x00020010');
-                    return value + ' [' + uids[value] + ']';
-                }
-
-                function getSopClass() {
-                    const value = image.data.string('x00080016');
-                    return value + ' [' + uids[value] + ']';
-                }
-
-                function getPixelRepresentation() {
-                    const value = image.data.uint16('x00280103');
-                    if(value === undefined) {
-                        return;
-                    }
-                    return value + (value === 0 ? ' (unsigned)' : ' (signed)');
-                }
-
-                function getPlanarConfiguration() {
-                    const value = image.data.uint16('x00280006');
-                    if(value === undefined) {
-                        return;
-                    }
-                    return value + (value === 0 ? ' (pixel)' : ' (plane)');
-                }
+                // function getPixelRepresentation() {
+                //     const value = image.data.uint16('x00280103');
+                //     if(value === undefined) {
+                //         return;
+                //     }
+                //     return value + (value === 0 ? ' (unsigned)' : ' (signed)');
+                // }
+                //
+                // function getPlanarConfiguration() {
+                //     const value = image.data.uint16('x00280006');
+                //     if(value === undefined) {
+                //         return;
+                //     }
+                //     return value + (value === 0 ? ' (pixel)' : ' (plane)');
+                // }
 
 
-                document.getElementById('transferSyntax').textContent = getTransferSyntax();
-                document.getElementById('sopClass').textContent = getSopClass();
                 document.getElementById('samplesPerPixel').textContent = image.data.uint16('x00280002');
                 document.getElementById('photometricInterpretation').textContent = image.data.string('x00280004');
-                document.getElementById('numberOfFrames').textContent = image.data.string('x00280008');
-                document.getElementById('planarConfiguration').textContent = getPlanarConfiguration();
-                document.getElementById('rows').textContent = image.data.uint16('x00280010');
-                document.getElementById('columns').textContent = image.data.uint16('x00280011');
-                document.getElementById('pixelSpacing').textContent = image.data.string('x00280030');
-                document.getElementById('bitsAllocated').textContent = image.data.uint16('x00280100');
-                document.getElementById('bitsStored').textContent = image.data.uint16('x00280101');
-                document.getElementById('highBit').textContent = image.data.uint16('x00280102');
-                document.getElementById('pixelRepresentation').textContent = getPixelRepresentation();
-                document.getElementById('windowCenter').textContent = image.data.string('x00281050');
-                document.getElementById('windowWidth').textContent = image.data.string('x00281051');
-                document.getElementById('rescaleIntercept').textContent = image.data.string('x00281052');
-                document.getElementById('rescaleSlope').textContent = image.data.string('x00281053');
-                document.getElementById('basicOffsetTable').textContent = image.data.elements.x7fe00010.basicOffsetTable ? image.data.elements.x7fe00010.basicOffsetTable.length : '';
-                document.getElementById('fragments').textContent = image.data.elements.x7fe00010.fragments ? image.data.elements.x7fe00010.fragments.length : '';
-                document.getElementById('minStoredPixelValue').textContent = image.minPixelValue;
-                document.getElementById('maxStoredPixelValue').textContent = image.maxPixelValue;
-                var end = new Date().getTime();
-                var time = end - start;
-                document.getElementById('totalTime').textContent = time + "ms";
-                document.getElementById('loadTime').textContent = image.loadTimeInMS + "ms";
-                document.getElementById('decodeTime').textContent = image.decodeTimeInMS + "ms";
+                // document.getElementById('numberOfFrames').textContent = image.data.string('x00280008');
+                // document.getElementById('planarConfiguration').textContent = getPlanarConfiguration();
+                // document.getElementById('rows').textContent = image.data.uint16('x00280010');
+                // document.getElementById('columns').textContent = image.data.uint16('x00280011');
+                // document.getElementById('pixelSpacing').textContent = image.data.string('x00280030');
+                // document.getElementById('bitsAllocated').textContent = image.data.uint16('x00280100');
+                // document.getElementById('bitsStored').textContent = image.data.uint16('x00280101');
+                // document.getElementById('highBit').textContent = image.data.uint16('x00280102');
+                // document.getElementById('pixelRepresentation').textContent = getPixelRepresentation();
+                // document.getElementById('windowCenter').textContent = image.data.string('x00281050');
+                // document.getElementById('windowWidth').textContent = image.data.string('x00281051');
+                // document.getElementById('rescaleIntercept').textContent = image.data.string('x00281052');
+                // document.getElementById('rescaleSlope').textContent = image.data.string('x00281053');
+                // document.getElementById('basicOffsetTable').textContent = image.data.elements.x7fe00010.basicOffsetTable ? image.data.elements.x7fe00010.basicOffsetTable.length : '';
+                // document.getElementById('fragments').textContent = image.data.elements.x7fe00010.fragments ? image.data.elements.x7fe00010.fragments.length : '';
+                // document.getElementById('minStoredPixelValue').textContent = image.minPixelValue;
+                // document.getElementById('maxStoredPixelValue').textContent = image.maxPixelValue;
+                // const end = new Date().getTime();
+                // const time = end - start;
+                // document.getElementById('totalTime').textContent = `${time}ms`;
+                // document.getElementById('loadTime').textContent = `${image.loadTimeInMS}ms`;
+                // document.getElementById('decodeTime').textContent = `${image.decodeTimeInMS}ms`;
 
             }, function(err) {
+              throw err;
                 alert(err);
             });
         }
         catch(err) {
+            throw err;
             alert(err);
         }
     }
 
     function downloadAndView() {
-        let url = document.getElementById('wadoURL').value;
+        let url = document.getElementById('niftiURL').value;
 
-        // prefix the url with wadouri: so cornerstone can find the image loader
-        url = "wadouri:" + url;
+        // prefix the url with nifti: so cornerstone can find the image loader
+        url = "nifti:" + url;
 
-        // image enable the dicomImage element and activate a few tools
+        // image enable the niftiImage element and activate a few tools
         loadAndViewImage(url);
     }
 
@@ -293,7 +277,7 @@
     });
 
     function getUrlWithoutFrame() {
-        var url = document.getElementById('wadoURL').value;
+        var url = document.getElementById('niftiURL').value;
         var frameIndex = url.indexOf('frame=');
         if(frameIndex !== -1) {
             url = url.substr(0, frameIndex-1);
@@ -301,7 +285,7 @@
         return url;
     }
 
-    var element = document.getElementById('dicomImage');
+    var element = document.getElementById('niftiImage');
     cornerstone.enable(element);
 
     document.getElementById('downloadAndView').addEventListener('click', function(e) {
@@ -309,11 +293,11 @@
     });
     document.getElementById('load').addEventListener('click', function(e) {
         var url = getUrlWithoutFrame();
-        cornerstoneWADOImageLoader.wadouri.dataSetCacheManager.load(url);
+        cornerstoneNIFTIImageLoader.wadouri.dataSetCacheManager.load(url);
     });
     document.getElementById('unload').addEventListener('click', function(e) {
         var url = getUrlWithoutFrame();
-        cornerstoneWADOImageLoader.wadouri.dataSetCacheManager.unload(url);
+        cornerstoneNIFTIImageLoader.wadouri.dataSetCacheManager.unload(url);
     });
 
     document.getElementById('purge').addEventListener('click', function(e) {

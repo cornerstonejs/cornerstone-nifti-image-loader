@@ -1,14 +1,15 @@
 const path = require('path');
+
 const rootPath = process.cwd();
-const context = path.join(rootPath, "src");
+const context = path.join(rootPath, 'src');
 const outputPath = path.join(rootPath, 'dist');
 const bannerPlugin = require('./plugins/banner');
 
 module.exports = {
   context,
   entry: {
-    cornerstoneWADOImageLoader: './imageLoader/index.js',
-    cornerstoneWADOImageLoaderWebWorker: './webWorker/index.js'
+    cornerstoneNIFTIImageLoader: './imageLoader/index.js'
+    // cornerstoneNIFTIImageLoaderWebWorker: './webWorker/index.js'
   },
   target: 'web',
   output: {
@@ -20,12 +21,12 @@ module.exports = {
   },
   devtool: 'source-map',
   externals: {
-    'dicom-parser': {
-      commonjs: "dicom-parser",
-      commonjs2: "dicom-parser",
-      amd: "dicom-parser",
-      root: 'dicomParser'
-    },
+    'nifti-reader': {
+      commonjs: 'nifti',
+      commonjs2: 'nifti',
+      amd: 'nifti',
+      root: 'nifti'
+    }
   },
   module: {
     rules: [{

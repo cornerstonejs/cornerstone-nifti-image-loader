@@ -1,6 +1,8 @@
 /* eslint import/extensions:0 */
-import * as dicomParser from 'dicom-parser';
+import * as niftiReader from 'nifti-reader';
 import registerLoaders from './imageLoader/registerLoaders.js';
+
+console.dir(niftiReader);
 
 let cornerstone;
 
@@ -15,4 +17,4 @@ const external = {
   }
 };
 
-export { dicomParser, external };
+export { niftiReader, external };

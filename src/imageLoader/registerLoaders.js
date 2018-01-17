@@ -1,4 +1,6 @@
-import nifti from './nifti/index.js';
+import nifti from '../nifti/index.js';
+
+console.log(nifti);
 
 /**
  * Register the WADO-URI and WADO-RS image loaders and metaData providers
@@ -9,5 +11,6 @@ import nifti from './nifti/index.js';
 function registerLoaders (cornerstone) {
   nifti.register(cornerstone);
 }
+
 
 export default registerLoaders;
