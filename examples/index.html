@@ -187,23 +187,33 @@
     var loaded = false;
 
     function loadAndViewImage(imageId) {
-        var element = document.getElementById('niftiImage');
+        const element = document.getElementById('niftiImage');
 
         try {
-            var start = new Date().getTime();
+            const start = new Date().getTime();
             cornerstone.loadAndCacheImage(imageId).then(function(image) {
                 console.log(image);
-                var viewport = cornerstone.getDefaultViewportForImage(element, image);
+                const stack = {
+                  currentImageIdIndex: 0,
+                  imageIds: Array.from(Array(91), (_, i) => `${imageId}#${i}`)
+                }
+                const viewport = cornerstone.getDefaultViewportForImage(element, image);
                 document.getElementById('toggleModalityLUT').checked = (viewport.modalityLUT !== undefined);
                 document.getElementById('toggleVOILUT').checked = (viewport.voiLUT !== undefined);
+                viewport.vflip = true;
+                viewport.hflip = true;
                 cornerstone.displayImage(element, image, viewport);
                 if(loaded === false) {
+                    cornerstoneTools.addStackStateManager(element, ['stack', 'wwwc', 'pan', 'zoom']);
+                    cornerstoneTools.addToolState(element, 'stack', stack);
                     cornerstoneTools.mouseInput.enable(element);
                     cornerstoneTools.mouseWheelInput.enable(element);
                     cornerstoneTools.wwwc.activate(element, 1); // ww/wc is the default tool for left mouse button
                     cornerstoneTools.pan.activate(element, 2); // pan is the default tool for middle mouse button
                     cornerstoneTools.zoom.activate(element, 4); // zoom is the default tool for right mouse button
-                    cornerstoneTools.zoomWheel.activate(element); // zoom is the default tool for middle mouse wheel
+                    // cornerstoneTools.zoomWheel.activate(element); // zoom is the default tool for middle mouse wheel
+                    cornerstoneTools.stackScroll.activate(element, 1);
+                    cornerstoneTools.stackScrollWheel.activate(element);
                     loaded = true;
                 }
 
@@ -223,9 +233,8 @@
                 //     return value + (value === 0 ? ' (pixel)' : ' (plane)');
                 // }
 
-
-                document.getElementById('samplesPerPixel').textContent = image.data.uint16('x00280002');
-                document.getElementById('photometricInterpretation').textContent = image.data.string('x00280004');
+                // document.getElementById('samplesPerPixel').textContent = image.data.uint16('x00280002');
+                // document.getElementById('photometricInterpretation').textContent = image.data.string('x00280004');
                 // document.getElementById('numberOfFrames').textContent = image.data.string('x00280008');
                 // document.getElementById('planarConfiguration').textContent = getPlanarConfiguration();
                 // document.getElementById('rows').textContent = image.data.uint16('x00280010');

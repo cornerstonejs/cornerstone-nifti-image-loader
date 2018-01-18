@@ -1,21 +1,43 @@
-function getMinMax (storedPixelData) {
-  // we always calculate the min max values since they are not always
-  // present in DICOM and we don't want to trust them anyway as cornerstone
-  // depends on us providing reliable values for these
-  let min = storedPixelData[0];
-  let max = storedPixelData[0];
-  let storedPixel;
-  const numPixels = storedPixelData.length;
+/**
+ * @typedef {Object} MinMax
+ * @property {number} min The minimum value in the array
+ * @property {number} max The maximum value in the array
+ */
 
-  for (let index = 1; index < numPixels; index++) {
-    storedPixel = storedPixelData[index];
-    min = Math.min(min, storedPixel);
-    max = Math.max(max, storedPixel);
+/**
+ * getMinMax - Calculates the minimum and maximum value in an array. This is
+ * necessary to provide cornerstone the min and max values of the array of
+ * values consisting of the image we're passing to it.
+ *
+ * Such information is typically found in DICOM files, but we prefer not to
+ * rely on it and calculate the values ourselves.
+ * @param {Array} values Array of values from which we want to know the minimum
+ * and maximum values.
+ *
+ * @return {MinMax} An object containing minimum
+ */
+function getMinMax (values) {
+  // performance note: a for with vanilla ifs is the most performant way to
+  // find min and max values from an array
+  // source: https://jsperf.com/determining-min-and-max-value-from-array/1
+  const numberOfValues = values.length;
+
+  let minimum = values[0];
+  let maximum = values[0];
+
+  for (let i = 1; i < numberOfValues; i++) {
+    const currentValue = values[i];
+
+    if (currentValue < minimum) {
+      minimum = currentValue;
+    } else if (currentValue > maximum) {
+      maximum = currentValue;
+    }
   }
 
   return {
-    min,
-    max
+    min: minimum,
+    max: maximum
   };
 }
 

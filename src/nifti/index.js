@@ -1,4 +1,6 @@
 import { niftiReader, external } from '../externalModules.js';
+import getMinMax from '../shared/getMinMax.js';
+
 // import Matrix from './matrix.js';
 //
 // function transformPixelDatum (method, niftiHeader, { i, j, k }, originalValue) {
@@ -66,7 +68,11 @@ import { niftiReader, external } from '../externalModules.js';
 
 const nifti = {
   loadImage (imageId) {
-    const imagePath = imageId.substr('nifti:'.length);
+    const imageIdRegex = /^nifti:([^#]+)(?:#([\d]+))?/;
+    const regexResults = imageIdRegex.exec(imageId);
+    // const imagePath = imageId.substr('nifti:'.length);
+    const imagePath = regexResults[1];
+    const sliceId = regexResults[2] || 0;
     const imageLoaded = new Promise((resolve, reject) => {
       console.log(`asked to load a nifti image ${imageId} with path ${imagePath}`);
 
@@ -83,7 +89,10 @@ const nifti = {
           console.log(niftiHeader.toFormattedString());
           console.dir(niftiHeader);
           niftiImage = niftiReader.readImage(niftiHeader, data);
-          niftiImage = new Uint8Array(niftiImage);
+          const sliceLength = niftiHeader.dims[1] * niftiHeader.dims[2];
+          const sliceByteIndex = sliceId * sliceLength;
+
+          niftiImage = new Uint8Array(niftiImage.slice(sliceByteIndex, sliceByteIndex + sliceLength));
           console.dir(niftiImage);
 
           // TODO should we load potential extensions on the nifti file?
@@ -95,14 +104,20 @@ const nifti = {
         // TODO need to check what to do for non-default orientations
         // (ie, when 'qform_code' is different than 0)
         // orientation information: https://brainder.org/2012/09/23/the-nifti-file-format/
-        if (niftiHeader.qform_code !== 0) {
-          throw new Error('Nifti image uses an unsupported orientation method');
-        }
+        // if (niftiHeader.qform_code !== 0) {
+        //   throw new Error('Nifti image uses an unsupported orientation method');
+        // }
 
         const cornerstone = external.cornerstone;
         const imageWidth = niftiHeader.dims[1];
         const imageHeight = niftiHeader.dims[2];
         const [, columnPixelDimension, rowPixelDimension] = niftiHeader.pixDims;
+        const { min: minimumValue, max: maximumValue } = getMinMax(niftiImage, false);
+
+        console.log({
+          minimumValue,
+          maximumValue
+        });
 
         resolve({
           imageId,
@@ -112,8 +127,8 @@ const nifti = {
           height: imageHeight,
           intercept: niftiHeader.scl_inter,
           invert: false,
-          minPixelValue: 0,
-          maxPixelValue: 255,
+          minPixelValue: minimumValue,
+          maxPixelValue: maximumValue,
           rowPixelSpacing: rowPixelDimension,
           rows: imageHeight,
           sizeInBytes: niftiImage.byteLength,
