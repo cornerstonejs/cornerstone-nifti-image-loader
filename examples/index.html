@@ -139,6 +139,9 @@
         console.log(image);
         const stack = {
           currentImageIdIndex: 0,
+          // 91: this is hardcoded because the image loader still has to expose
+          //     the nifti metadata. 91 is the number of slices of the default
+          //     sample .nii file
           imageIds: Array.from(Array(91), (_, i) => `${imageId}#${i}`)
         }
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
