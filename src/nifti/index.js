@@ -85,17 +85,25 @@ const nifti = {
         }
 
         if (niftiReader.isNIFTI(data)) {
+          // reads the header with the metadata
           niftiHeader = niftiReader.readHeader(data);
           console.log(niftiHeader.toFormattedString());
           console.dir(niftiHeader);
+
+          // TODO do we need to differentiate among the several intent codes?
+          // console.log(niftiHeader.intent_name);
+
+          // reads the image data
           niftiImage = niftiReader.readImage(niftiHeader, data);
           const sliceLength = niftiHeader.dims[1] * niftiHeader.dims[2];
           const sliceByteIndex = sliceId * sliceLength;
 
+          // converts the image data into a proper typed array
+          // TODO detect which type array should we create here (8bit? 16bit? etc)
           niftiImage = new Uint8Array(niftiImage.slice(sliceByteIndex, sliceByteIndex + sliceLength));
           console.dir(niftiImage);
 
-          // TODO should we load potential extensions on the nifti file?
+          // TODO should we load potential extensions on the nifti file? is this necessary?
           // if (niftiReader.hasExtension(niftiHeader)) {
           //   niftiExt = niftiReader.readExtensionData(niftiHeader, data);
           // }
