@@ -1,0 +1,32 @@
+#nifti-image-container {
+  position: relative;
+  width: 512px;
+  height: 512px;
+  display: inline-block;
+  border-style: solid;
+  border-color: black;
+  color: white;
+  margin-right: 1rem;
+}
+
+#nifti-image {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#image-and-data-info {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+#nifti-image-data {
+  flex: 1;
+}
+
+#main-header {
+  margin-top: 2rem;
+}

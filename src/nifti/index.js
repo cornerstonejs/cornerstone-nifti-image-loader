@@ -113,6 +113,8 @@ const nifti = {
         const imageHeight = niftiHeader.dims[2];
         const [, columnPixelDimension, rowPixelDimension] = niftiHeader.pixDims;
         const { min: minimumValue, max: maximumValue } = getMinMax(niftiImage, false);
+        // if scl_slope is 0, the nifti specs say it's not defined (then, we default to 1)
+        const scaleSlope = niftiHeader.scl_slope === 0 ? 1 : niftiHeader.scl_slope;
 
         console.log({
           minimumValue,
@@ -132,8 +134,7 @@ const nifti = {
           rowPixelSpacing: rowPixelDimension,
           rows: imageHeight,
           sizeInBytes: niftiImage.byteLength,
-          // slope: niftiHeader.scl_slope,
-          slope: 1, // the file data/avg152T1_LR_nifti.nii has slope 0 and that makes the image not render (just a black canvas)
+          slope: scaleSlope,
           width: imageWidth,
           windowCenter: Math.floor((niftiHeader.cal_max + niftiHeader.cal_min) / 2), // unsure about this...
           windowWidth: niftiHeader.cal_max + niftiHeader.cal_min, // unsure
