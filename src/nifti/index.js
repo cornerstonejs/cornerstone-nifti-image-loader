@@ -1,5 +1,7 @@
 import { niftiReader, external } from '../externalModules.js';
+import parsedImageId from './parsedImageId.js';
 import getMinMax from '../shared/getMinMax.js';
+
 
 // import Matrix from './matrix.js';
 //
@@ -68,11 +70,8 @@ import getMinMax from '../shared/getMinMax.js';
 
 const nifti = {
   loadImage (imageId) {
-    const imageIdRegex = /^nifti:([^#]+)(?:#([\d]+))?/;
-    const regexResults = imageIdRegex.exec(imageId);
-    // const imagePath = imageId.substr('nifti:'.length);
-    const imagePath = regexResults[1];
-    const sliceId = regexResults[2] || 0;
+    const { imagePath, sliceIndex } = parsedImageId(imageId);
+
     const imageLoaded = new Promise((resolve, reject) => {
       console.log(`asked to load a nifti image ${imageId} with path ${imagePath}`);
 
@@ -96,7 +95,7 @@ const nifti = {
           // reads the image data
           niftiImage = niftiReader.readImage(niftiHeader, data);
           const sliceLength = niftiHeader.dims[1] * niftiHeader.dims[2];
-          const sliceByteIndex = sliceId * sliceLength;
+          const sliceByteIndex = sliceIndex * sliceLength;
 
           // converts the image data into a proper typed array
           // TODO detect which type array should we create here (8bit? 16bit? etc)
