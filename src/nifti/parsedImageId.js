@@ -27,8 +27,8 @@ function parsedImageId (imageId) {
    */
   const imageIdRegex = /^nifti:([^#]+)(?:#([\d]+))?/;
   const regexResults = imageIdRegex.exec(imageId);
-  const imagePath = regexResults[1];
-  const sliceIndex = regexResults[2] || 0;
+  const imagePath = regexResults && regexResults[1];
+  const sliceIndex = regexResults && regexResults[2] || 0;
 
   return {
     imagePath,
