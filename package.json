@@ -34,7 +34,7 @@
     "webpack:dev": "webpack --progress --config ./config/webpack/webpack-dev",
     "webpack:prod": "webpack --progress --config ./config/webpack/webpack-prod",
     "webpack:watch": "webpack --progress --debug --watch  --config ./config/webpack",
-    "watch": "npm run clean && shx mkdir dist && npm run concat:codecs && npm run webpack:watch",
+    "watch": "npm run clean && shx mkdir dist && npm run webpack:watch",
     "start": "npm run webpack",
     "test": "npm run test:phantom",
     "test:watch": "karma start config/karma/karma-watch.js",
@@ -74,5 +74,8 @@
     "shx": "^0.2.2",
     "uglify-js": "^3.2.0",
     "webpack": "^3.8.1"
+  },
+  "dependencies": {
+    "nifti-reader-js": "^0.5.4"
   }
 }

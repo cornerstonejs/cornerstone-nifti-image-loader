@@ -1,5 +1,5 @@
 /* eslint import/extensions:0 */
-import * as niftiReader from 'nifti-reader';
+import * as niftiReader from 'nifti-reader-js';
 import registerLoaders from './imageLoader/registerLoaders.js';
 
 console.dir(niftiReader);

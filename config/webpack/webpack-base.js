@@ -9,7 +9,6 @@ module.exports = {
   context,
   entry: {
     cornerstoneNIFTIImageLoader: './imageLoader/index.js'
-    // cornerstoneNIFTIImageLoaderWebWorker: './webWorker/index.js'
   },
   target: 'web',
   output: {
@@ -21,7 +20,7 @@ module.exports = {
   },
   devtool: 'source-map',
   externals: {
-    'nifti-reader': {
+    'nifti-reader-js': {
       commonjs: 'nifti',
       commonjs2: 'nifti',
       amd: 'nifti',

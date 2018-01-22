@@ -152,9 +152,7 @@ const nifti = {
           render: cornerstone.renderGrayscaleImage
         });
       }, reject);
-
     });
-
 
     return { promise: imageLoaded };
   },
