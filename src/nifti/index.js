@@ -1,5 +1,6 @@
 import { niftiReader, external } from '../externalModules.js';
 import parsedImageId from './parsedImageId.js';
+import fileLoader from './fileLoader.js';
 import getMinMax from '../shared/getMinMax.js';
 
 
@@ -75,7 +76,7 @@ const nifti = {
     const imageLoaded = new Promise((resolve, reject) => {
       console.log(`asked to load a nifti image ${imageId} with path ${imagePath}`);
 
-      fetch(imagePath).then((data) => data.arrayBuffer()).then((data) => {
+      fileLoader.loadFile(imagePath, imageId).then((data) => {
         let niftiHeader = null,
           niftiImage = null;
 
@@ -150,7 +151,7 @@ const nifti = {
           getPixelData: () => new Uint8Array(niftiImage),
           render: cornerstone.renderGrayscaleImage
         });
-      });
+      }, reject);
 
     });
 
