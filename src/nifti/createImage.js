@@ -4,7 +4,9 @@ import getMinMax from '../shared/getMinMax.js';
 /**
  * creates a cornerstone Image object for the specified Image and imageId
  *
- * @param data
+ * @param imageId the imageId of the image being created
+ * @param data the contents of the file being loaded
+ * @param sliceIndex the slice index to be shown
  * @returns Cornerstone Image Object
  */
 export default function (imageId, data, sliceIndex) {

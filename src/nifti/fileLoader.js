@@ -6,8 +6,10 @@ import { getOptions } from './options.js';
  * loadFile - Loads a file doing an AJAX request to the URI provided by
  * filePath, optionally providing some HTTP headers to be sent.
  *
- * @param  {type} filePath description
- * @return {type}          description
+ * @param  {String} filePath the path to the file being loaded (through XHR)
+ * @param  {String} imageId  the imageId being loaded - necessary for file caching
+ * @return {Promise}         a promise to be resolved when the file is loaded,
+ * either through XHR or from the cache
  */
 function loadFile (filePath, imageId, {
   headers = { },
