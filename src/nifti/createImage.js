@@ -1,103 +1,93 @@
 import { external } from '../externalModules.js';
-
-const canvas = document.createElement('canvas');
-let lastImageIdDrawn;
+import getMinMax from '../shared/getMinMax.js';
 
 /**
  * creates a cornerstone Image object for the specified Image and imageId
  *
- * @param image - An Image
- * @param imageId - the imageId for this image
+ * @param data
  * @returns Cornerstone Image Object
  */
-export default function (image, imageId) {
-  // extract the attributes we need
-  const rows = image.naturalHeight;
-  const columns = image.naturalWidth;
+export default function (imageId, data, sliceIndex) {
+  const niftiReader = external.niftiReader;
 
-  function getPixelData () {
-    const imageData = getImageData();
+  const promise = new Promise(function (resolve, reject) {
+    let niftiHeader = null;
+    let niftiImage = null;
 
+    if (niftiReader.isCompressed(data)) {
+      data = niftiReader.decompress(data);
+    }
 
-    return imageData.data;
-  }
+    if (niftiReader.isNIFTI(data)) {
+      // reads the header with the metadata
+      niftiHeader = niftiReader.readHeader(data);
+      console.log(niftiHeader.toFormattedString());
+      console.dir(niftiHeader);
 
-  function getImageData () {
-    let context;
+      // TODO do we need to differentiate among the several intent codes?
+      // console.log(niftiHeader.intent_name);
 
-    if (lastImageIdDrawn === imageId) {
-      context = canvas.getContext('2d');
+      // reads the image data
+      niftiImage = niftiReader.readImage(niftiHeader, data);
+      const sliceLength = niftiHeader.dims[1] * niftiHeader.dims[2];
+      const sliceByteIndex = sliceIndex * sliceLength;
+
+      // converts the image data into a proper typed array
+      // TODO detect which type array should we create here (8bit? 16bit? etc)
+      niftiImage = new Uint8Array(niftiImage.slice(sliceByteIndex, sliceByteIndex + sliceLength));
+      console.dir(niftiImage);
+
+      // TODO should we load potential extensions on the nifti file? is this necessary?
+      // if (niftiReader.hasExtension(niftiHeader)) {
+      //   niftiExt = niftiReader.readExtensionData(niftiHeader, data);
+      // }
     } else {
-      canvas.height = image.naturalHeight;
-      canvas.width = image.naturalWidth;
-      context = canvas.getContext('2d');
-      context.drawImage(image, 0, 0);
-      lastImageIdDrawn = imageId;
+      reject(new Error('File is not a nifti?'));
     }
 
-    return context.getImageData(0, 0, image.naturalWidth, image.naturalHeight);
-  }
+    // TODO need to check what to do for non-default orientations
+    // (ie, when 'qform_code' is different than 0)
+    // orientation information: https://brainder.org/2012/09/23/the-nifti-file-format/
+    // if (niftiHeader.qform_code !== 0) {
+    //   throw new Error('Nifti image uses an unsupported orientation method');
+    // }
 
-  function getCanvas () {
-    if (lastImageIdDrawn === imageId) {
-      return canvas;
-    }
+    const cornerstone = external.cornerstone;
+    const imageWidth = niftiHeader.dims[1];
+    const imageHeight = niftiHeader.dims[2];
+    const [, columnPixelDimension, rowPixelDimension] = niftiHeader.pixDims;
+    const { min: minimumValue, max: maximumValue } = getMinMax(niftiImage, false);
+    // if scl_slope is 0, the nifti specs say it's not defined (then, we default to 1)
+    const scaleSlope = niftiHeader.scl_slope === 0 ? 1 : niftiHeader.scl_slope;
 
-    canvas.height = image.naturalHeight;
-    canvas.width = image.naturalWidth;
-    const context = canvas.getContext('2d');
+    console.log({
+      minimumValue,
+      maximumValue
+    });
 
-    context.drawImage(image, 0, 0);
-    lastImageIdDrawn = imageId;
-
-    return canvas;
-  }
-
-  // Extract the various attributes we need
-  resolve({
-    imageId,
-    color: false,
-    columnPixelSpacing: columnPixelDimension,
-    columns: imageWidth,
-    height: imageHeight,
-    intercept: niftiHeader.scl_inter,
-    invert: false,
-    minPixelValue: 0,
-    maxPixelValue: 255,
-    rowPixelSpacing: rowPixelDimension,
-    rows: imageHeight,
-    sizeInBytes: niftiImage.byteLength,
-    slope: niftiHeader.scl_slope,
-    width: imageWidth,
-    windowCenter: Math.floor((niftiHeader.cal_max + niftiHeader.cal_min) / 2), // unsure about this...
-    windowWidth: niftiHeader.cal_max + niftiHeader.cal_min, // unsure
-    decodeTimeInMS: 400,
-    floatPixelData: undefined,
-    getPixelData: () => niftiImage,
-    render: cornerstone.renderGrayscaleImage
+    resolve({
+      imageId,
+      color: false,
+      columnPixelSpacing: columnPixelDimension,
+      columns: imageWidth,
+      height: imageHeight,
+      intercept: niftiHeader.scl_inter,
+      invert: false,
+      minPixelValue: minimumValue,
+      maxPixelValue: maximumValue,
+      rowPixelSpacing: rowPixelDimension,
+      rows: imageHeight,
+      sizeInBytes: niftiImage.byteLength,
+      slope: scaleSlope,
+      width: imageWidth,
+      windowCenter: Math.floor((niftiHeader.cal_max + niftiHeader.cal_min) / 2), // unsure about this...
+      windowWidth: niftiHeader.cal_max + niftiHeader.cal_min, // unsure
+      decodeTimeInMS: 400,
+      floatPixelData: undefined,
+      getPixelData: () => new Uint8Array(niftiImage),
+      render: cornerstone.renderGrayscaleImage
+    });
   });
 
-  // return {
-  //   imageId,
-  //   minPixelValue: 0,
-  //   maxPixelValue: 255,
-  //   slope: 1,
-  //   intercept: 0,
-  //   windowCenter: 128,
-  //   windowWidth: 255,
-  //   render: external.cornerstone.renderWebImage,
-  //   getPixelData,
-  //   getCanvas,
-  //   getImage: () => image,
-  //   rows,
-  //   columns,
-  //   height: rows,
-  //   width: columns,
-  //   color: true,
-  //   rgba: false,
-  //   columnPixelSpacing: undefined,
-  //   rowPixelSpacing: undefined,
-  //   invert: false,
-  //   sizeInBytes: rows * columns * 4
-  // };
+  return promise;
 }

@@ -57,7 +57,7 @@ function loadFile (filePath, imageId, {
 function loadStart (url, imageId, options, params) {
   return function (e) {
     callOptionalEventHook(options.onloadstart, e, params);
-    triggerCornerstoneEvent('CornerstoneImageLoadStart', {
+    triggerCornerstoneEvent('cornerstoneimageloadstart', {
       url,
       imageId
     });
@@ -68,7 +68,7 @@ function loadStart (url, imageId, options, params) {
 function loadEnd (url, imageId, options, params) {
   return function (e) {
     callOptionalEventHook(options.onloadend, e, params);
-    triggerCornerstoneEvent('CornerstoneImageLoadStart', {
+    triggerCornerstoneEvent('cornerstoneimageloadend', {
       url,
       imageId
     });
@@ -84,7 +84,7 @@ function progress (url, imageId, options, params) {
     let percentComplete;
 
     if (e.lengthComputable) {
-      total = e.total; // e.total the total bytes seted by the header
+      total = e.total; // e.total the total bytes set by the header
       percentComplete = Math.round((loaded / total) * 100);
     }
 
@@ -100,7 +100,7 @@ function progress (url, imageId, options, params) {
       percentComplete
     };
 
-    triggerCornerstoneEvent('CornerstoneImageLoadProgress', eventData);
+    triggerCornerstoneEvent('cornerstoneimageloadprogress', eventData);
   };
 }
 
@@ -134,7 +134,7 @@ function triggerCornerstoneEvent (eventName, data = { }) {
   const eventData = {
     detail: data
   };
-  const customEvent = new CustomEvent(eventName.toLowerCase(), eventData);
+  const customEvent = new CustomEvent(eventName, eventData);
 
   external.cornerstone.events.dispatchEvent(customEvent);
 }

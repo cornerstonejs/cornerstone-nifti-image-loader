@@ -1,10 +1,12 @@
 /* eslint import/extensions:0 */
-import * as niftiReader from 'nifti-reader-js';
+import nifti from 'nifti-reader-js';
 import registerLoaders from './imageLoader/registerLoaders.js';
 
-console.dir(niftiReader);
+console.warn('IMPORTING???');
+console.dir(nifti);
 
-let cornerstone;
+let cornerstone = window.cornerstone;
+let niftiReaderJs = nifti;
 
 const external = {
   set cornerstone (cs) {
@@ -14,7 +16,13 @@ const external = {
   },
   get cornerstone () {
     return cornerstone;
+  },
+  set niftiReader (nr) {
+    niftiReaderJs = nr;
+  },
+  get niftiReader () {
+    return niftiReaderJs;
   }
 };
 
-export { niftiReader, external };
+export { external };

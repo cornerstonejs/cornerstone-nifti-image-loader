@@ -17,7 +17,7 @@
       <p class="lead">
         Enter a URL for a NIFTI file to view it using cornerstone.
         <button id='toggle-more-info' class="btn btn-outline-info" type="button">
-            🛈 more info
+            More info
         </button>
       </p>
     </header>
@@ -143,7 +143,8 @@
           //     the nifti metadata. 91 is the number of slices of the default
           //     sample .nii file
           imageIds: Array.from(Array(91), (_, i) => `${imageId}#${i}`)
-        }
+        };
+
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
         viewport.vflip = true;
         viewport.hflip = true;
@@ -157,6 +158,7 @@
           cornerstoneTools.pan.activate(element, 2); // pan is the default tool for middle mouse button
           cornerstoneTools.zoom.activate(element, 4); // zoom is the default tool for right mouse button
           cornerstoneTools.stackScrollWheel.activate(element);
+          cornerstoneTools.orientationMarkers.enable(element);
           loaded = true;
         }
 
@@ -205,8 +207,7 @@
         throw err;
         alert(err);
       });
-    }
-    catch(err) {
+    } catch(err) {
       throw err;
       alert(err);
     }
@@ -219,7 +220,7 @@
     loadAndViewImage(`nifti:${url}`);
   }
 
-  cornerstone.events.addEventListener('cornerstoneimageload-progress', function(event) {
+  cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
     const eventData = event.detail;
     const loadProgress = document.getElementById('load-progress');
     loadProgress.textContent = `Image Load Progress: ${eventData.percentComplete}%`;
