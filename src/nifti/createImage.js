@@ -97,7 +97,7 @@ export default function (imageId, data, sliceIndex) {
       // windowWidth: 255,
       windowCenter: Math.floor((niftiHeader.cal_max + niftiHeader.cal_min) / 2), // unsure about this...
       windowWidth: niftiHeader.cal_max + niftiHeader.cal_min, // unsure
-      decodeTimeInMS: 400,
+      decodeTimeInMS: 0,
       floatPixelData: isFloat ? niftiImage : undefined,
       getPixelData: () => niftiImage, // TODO convert float to int values, if necessary
       render: isColored ? cornerstone.renderColorImage : cornerstone.renderGrayscaleImage
