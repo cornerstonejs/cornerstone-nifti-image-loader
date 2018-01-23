@@ -67,16 +67,54 @@ export default function (imageId, data, sliceIndex) {
     //   throw new Error('Nifti image uses an unsupported orientation method');
     // }
 
-    const cornerstone = external.cornerstone;
     const [, columnPixelDimension, rowPixelDimension] = niftiHeader.pixDims;
-    const { min: minimumValue, max: maximumValue } = getMinMax(niftiImage, false);
-    // if scl_slope is 0, the nifti specs say it's not defined (then, we default to 1)
-    const scaleSlope = niftiHeader.scl_slope === 0 ? 1 : niftiHeader.scl_slope;
 
-    console.log({
-      minimumValue,
-      maximumValue
-    });
+    let minPixelValue;
+    let maxPixelValue;
+    let slope;
+    let intercept;
+    let floatPixelData;
+
+    // determines the min, max pixel values and the slope and intercept
+    // if the pixel data is represented by floating point, we need to convert
+    if (isFloat) {
+      const conversionResult = convertToUInt8PixelData(niftiImage);
+
+      minPixelValue = conversionResult.min;
+      maxPixelValue = conversionResult.max;
+      slope = conversionResult.slope;
+      intercept = conversionResult.intercept;
+
+      floatPixelData = new ArrayConstructor(niftiImage);
+      niftiImage = conversionResult.intPixelData;
+    } else {
+      const minMax = getMinMax(niftiImage, false);
+
+      minPixelValue = minMax.min;
+      maxPixelValue = minMax.max;
+      // if scl_slope is 0, the nifti specs say it's not defined (then, we default to 1)
+      slope = niftiHeader.scl_slope === 0 ? 1 : niftiHeader.scl_slope;
+      intercept = niftiHeader.scl_inter;
+    }
+
+
+    // determines the display window configuration either from the nifti file,
+    // or from the minimum/maximum pixel data values + slope/intercept
+    let windowConfig;
+    const isWindowInfoAbsent = niftiHeader.cal_max - niftiHeader.cal_min === 0;
+
+    if (isWindowInfoAbsent) {
+      // the nifti file did not provide the initial window min/max values
+      // then we determine sensible values using min/max pixel data, slope and intercept
+      windowConfig = determineWindowValues(minPixelValue, maxPixelValue, slope, intercept);
+    } else {
+      windowConfig = determineWindowValues(niftiHeader.cal_min, niftiHeader.cal_max, 1, 0);
+    }
+    const { windowWidth, windowCenter } = windowConfig;
+
+    // determines which cornerstone renderer to use
+    const cornerstone = external.cornerstone;
+    const render = isColored ? cornerstone.renderColorImage : cornerstone.renderGrayscaleImage;
 
     resolve({
       imageId,
@@ -84,31 +122,65 @@ export default function (imageId, data, sliceIndex) {
       columnPixelSpacing: columnPixelDimension,
       columns: imageWidth,
       height: imageHeight,
-      intercept: niftiHeader.scl_inter,
+      intercept,
       invert: false,
-      minPixelValue: minimumValue,
-      maxPixelValue: maximumValue,
+      minPixelValue,
+      maxPixelValue,
       rowPixelSpacing: rowPixelDimension,
       rows: imageHeight,
       sizeInBytes: niftiImage.byteLength,
-      slope: scaleSlope,
+      slope,
       width: imageWidth,
-      // windowCenter: 127,
-      // windowWidth: 255,
-      windowCenter: Math.floor((niftiHeader.cal_max + niftiHeader.cal_min) / 2), // unsure about this...
-      windowWidth: niftiHeader.cal_max + niftiHeader.cal_min, // unsure
+      windowCenter,
+      windowWidth,
       decodeTimeInMS: 0,
-      floatPixelData: isFloat ? niftiImage : undefined,
-      getPixelData: () => niftiImage, // TODO convert float to int values, if necessary
-      render: isColored ? cornerstone.renderColorImage : cornerstone.renderGrayscaleImage
+      floatPixelData,
+      getPixelData: () => niftiImage,
+      render
     });
   });
 
   return promise;
 }
 
+function determineWindowValues (minPixelValue, maxPixelValue, slope, intercept) {
+  const maxVoi = maxPixelValue * slope + intercept;
+  const minVoi = minPixelValue * slope + intercept;
 
-// const niftiDataType = ['integer unsigned', 'integer signed', 'real', 'rgb'];
+  return {
+    windowWidth: maxVoi - minVoi,
+    windowCenter: (maxVoi + minVoi) / 2
+  };
+}
+
+function convertToUInt8PixelData (floatPixelData) {
+  const floatMinMax = getMinMax(floatPixelData);
+  const floatRange = Math.abs(floatMinMax.max - floatMinMax.min);
+  const intRange = 65535;
+  const slope = floatRange / intRange;
+  const intercept = floatMinMax.min;
+  const numPixels = floatPixelData.length;
+  const intPixelData = new Uint16Array(numPixels);
+  let min = 65535;
+  let max = 0;
+
+  for (let i = 0; i < numPixels; i++) {
+    const rescaledPixel = Math.floor((floatPixelData[i] - intercept) / slope);
+
+    intPixelData[i] = rescaledPixel;
+    min = Math.min(min, rescaledPixel);
+    max = Math.max(max, rescaledPixel);
+  }
+
+  return {
+    min,
+    max,
+    intPixelData,
+    slope,
+    intercept
+  };
+}
+
 function getMemoryStorageRequirements (niftiHeader) {
   const niftiReader = external.niftiReader;
   const dataTypeCode = niftiHeader.datatypeCode;
