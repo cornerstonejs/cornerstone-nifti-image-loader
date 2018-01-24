@@ -7,7 +7,7 @@ import nifti from 'nifti-reader-js';
 external.cornerstone = window.cornerstone;
 external.niftiReader = nifti;
 
-const url = 'nifti://localhost:9876/base/test/data/';
+const url = 'nifti:/base/test/data/';
 
 describe('loadImage', function () {
   it('should properly load an uncompressed file (.nii)', function (done) {

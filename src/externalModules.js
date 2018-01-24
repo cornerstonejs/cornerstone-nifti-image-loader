@@ -2,9 +2,6 @@
 import nifti from 'nifti-reader-js';
 import registerLoaders from './imageLoader/registerLoaders.js';
 
-console.warn('IMPORTING???');
-console.dir(nifti);
-
 let cornerstone = window.cornerstone;
 let niftiReaderJs = nifti;
 

@@ -19,14 +19,6 @@ module.exports = {
     umdNamedDefine: true
   },
   devtool: 'source-map',
-  externals: {
-    'nifti-reader-js': {
-      commonjs: 'nifti',
-      commonjs2: 'nifti',
-      amd: 'nifti',
-      root: 'nifti'
-    }
-  },
   module: {
     rules: [{
       enforce: 'pre',
