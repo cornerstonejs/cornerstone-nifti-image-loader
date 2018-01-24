@@ -32,9 +32,6 @@ export default function (imageId, data, sliceIndex) {
     console.log(niftiHeader.toFormattedString());
     console.dir(niftiHeader);
 
-    // adds the header of this nifti file to the metadata cache
-    metaDataManager.add(imageId, niftiHeader);
-
     // TODO do we need to differentiate among the several intent codes?
     // console.log(niftiHeader.intent_name);
 
@@ -111,6 +108,17 @@ export default function (imageId, data, sliceIndex) {
       windowConfig = determineWindowValues(niftiHeader.cal_min, niftiHeader.cal_max, 1, 0);
     }
     const { windowWidth, windowCenter } = windowConfig;
+
+
+    // adds the header of this nifti file to the metadata cache
+    niftiHeader.calculated = {
+      minPixelValue,
+      maxPixelValue,
+      windowWidth,
+      windowCenter
+    };
+    metaDataManager.add(imageId, niftiHeader);
+
 
     // determines which cornerstone renderer to use
     const cornerstone = external.cornerstone;
