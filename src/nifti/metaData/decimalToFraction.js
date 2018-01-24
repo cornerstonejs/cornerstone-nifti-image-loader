@@ -1,4 +1,4 @@
-// This utility was borrowed/adapted from Erik Garrison's fraction.js
+// This utility was borrowed/adapted from Erik Garrison's 'fractional' lib
 // https://github.com/ekg/fraction.js/blob/master/index.js
 
 class Fraction {
@@ -13,15 +13,22 @@ function decimalToFraction (number) {
     throw new Error(`The provided argument (${number}) is not a number.`);
   }
 
-  const result = new Fraction(1, 1);
+  const result = new Fraction(number, 1);
 
   if (hasDecimalPoint(number)) {
     const rounded = roundToPlaces(number, 9);
     const scaleUp = Math.pow(10, rounded.toString().split('.')[1].length);
 
-    result.numerator = Math.round(this.denominator * scaleUp);
+    result.numerator = Math.round(result.numerator * scaleUp);
     result.denominator *= scaleUp;
   }
+
+  // now we find the smallest integer fraction by determining gcf and dividing
+  // the numerator/denominator by it
+  const greatestCommonFactor = gcf(result.numerator, result.denominator);
+
+  result.numerator /= greatestCommonFactor;
+  result.denominator /= greatestCommonFactor;
 
   return result;
 }
@@ -41,4 +48,27 @@ function roundToPlaces (number, places) {
   return Math.round(number * greatness) / greatness;
 }
 
-export default decimalToFraction;
+function gcf (a, b) {
+  if (!(typeof a === 'number' || a instanceof Number) || !(typeof b === 'number' || b instanceof Number)) {
+    throw new Error(`Greatest common factor requires 2 numbers to compute. What was provided: ${a} and ${b}.`);
+  }
+
+  a = Math.abs(a);
+  b = Math.abs(b);
+  let c;
+
+  while (b) {
+    c = a % b;
+    a = b;
+    b = c;
+  }
+
+  return a;
+}
+
+export {
+  decimalToFraction,
+  hasDecimalPoint,
+  roundToPlaces,
+  gcf
+};

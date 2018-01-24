@@ -1,5 +1,5 @@
 import metaDataManager from './metaDataManager.js';
-import decimalToFraction from './decimalToFraction.js';
+import { decimalToFraction } from './decimalToFraction.js';
 import { external } from '../../externalModules.js';
 
 const niftiReader = external.niftiReader;

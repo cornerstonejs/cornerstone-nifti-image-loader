@@ -1,11 +1,6 @@
 /* eslint import/extensions: 0 */
 import { expect } from 'chai';
-import { external } from '../src/externalModules.js';
 import niftiImageLoader from '../src/nifti/index.js';
-import nifti from 'nifti-reader-js';
-
-external.cornerstone = window.cornerstone;
-external.niftiReader = nifti;
 
 const url = 'nifti:/base/test/data/';
 
