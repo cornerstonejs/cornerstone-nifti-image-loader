@@ -217,8 +217,8 @@
   function downloadAndView() {
     let url = document.getElementById('nifti-URL').value;
 
-    // prefix the url with nifti: so cornerstone can find the image loader
-    loadAndViewImage(`nifti:${url}`);
+    // prefix the url with nifti:// so cornerstone can find the image loader
+    loadAndViewImage(`nifti://${url}`);
   }
 
   cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {

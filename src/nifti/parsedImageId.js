@@ -1,40 +1,56 @@
 
 /**
- * parsedImageId - Returns an imagePath and a sliceIndex from a nifti imageId.
- * The format is nifti:imagePath#sliceIndex, with sliceIndex being optional
- * and defaulting to 0. Examples:
- * - nifti:brain.nii
- * - nifti:brain.nii#46
- * - nifti:brain.nii.gz
- * - nifti:files/patient4/study246/atlas.nii
- * @param  {type} imageId the full imageId for a nifti image
- * @return {type}         an object containing the path for the image (used to
- * fetch it) - imagePath, the index of the slice - sliceIndex (default is 0)
- * and a boolean indicating if the slice index was defined in the imageId or
- * not - wasSliceDefined (eg, it is false for 'nifti:brain.nii' and true for
- * 'nifti:brain.nii#25').
+ * parsedImageId - Returns an filePath, a sliceDimension and a sliceIndex
+ * from a nifti imageId.
+ * The format is nifti//:filePath#sliceDimension-sliceIndex, with sliceDimension
+ * and sliceIndex being optional and defaulting to 'z' and 0 respectively.
+ * Examples:
+ * - nifti://brain.nii
+ * - nifti://brain.nii#46
+ * - nifti://brain.nii.gz
+ * - nifti://files/patient4/study246/atlas.nii
+ * - nifti://collin.nii#x-25
+ * - nifti://autumn.nii.gz#y
+ * - nifti://wednesday.nii#z-0
+ * @example
+ * const { filePath, sliceDimension, sliceIndex } = parsedImageId('nifti://brain.nii#y-10');
+ * filePath === 'brain.nii';
+ * sliceDimension === 'y';
+ * sliceIndex === 10;
+ * @param  {String} imageId the full imageId for a nifti image
+ * @return {Object}         an object containing the path for the image (used to
+ * fetch it) - filePath, the index of the slice - sliceDimension
+ * (default is 'z'), sliceIndex (default is 0)
+ * and booleans wasSliceDimensionDefined and wasSliceIndexDefined indicating
+ * if the optional parameters were defined in the imageId or
+ * not.
  */
-function parsedImageId (imageId) {
+export default function parsedImageId (imageId) {
 
   /**
-   * nifti:imagePath(#sliceIndex)?
-   * - 'nifti:' is constant and should begin the string
-   * - '([^#]+)' is the imagePath and it should not contain the '#' symbol
-   * - '(?:# ...)?' is the '#' symbol indicating the presence of the slice index
-   *   as we don't want '#', but only the number after it, it is a non-capturing
-   *   group. The final ? means this is optional
+   * nifti:filePath(#(sliceDimension-)?sliceIndex?)?
+   * - 'nifti://' is constant and should begin the string
+   * - '([^#]+)' is the filePath and it should not contain the '#' symbol
+   * - '(?:# ...)?' is the '#' symbol indicating the presence of the
+   * slice dimension and/or index. The final ? means this is optional
+   * - '([xyz])' is the sliceDimension
    * - '([\d]+)' is the sliceIndex
    */
-  const imageIdRegex = /^nifti:([^#]+)(?:#([\d]+))?/;
+  const imageIdRegex = /^nifti:\/\/([^#]+)(?:#(?:(?=[xyz])(?:([xyz])(?:(?=-[\d]+)-([\d]+))?)|(?![xyz])([\d]+)))?$/;
   const regexResults = imageIdRegex.exec(imageId);
-  const imagePath = regexResults && regexResults[1];
-  const sliceIndex = regexResults && regexResults[2] || 0;
+
+  if (!regexResults) {
+    throw new Error(`Not in a valid imageId format: ${imageId}`);
+  }
+  const filePath = regexResults && regexResults[1];
+  const sliceDimension = regexResults && regexResults[2] || 'z';
+  const sliceIndex = regexResults && parseInt(regexResults[3] || regexResults[4], 0) || 0;
 
   return {
-    imagePath,
+    filePath,
+    sliceDimension,
     sliceIndex,
-    wasSliceDefined: typeof regexResults[2] === 'undefined'
+    wasSliceDimensionDefined: typeof regexResults[2] !== 'undefined',
+    wasSliceIndexDefined: typeof regexResults[3] !== 'undefined' || typeof regexResults[4] !== 'undefined'
   };
 }
-
-export default parsedImageId;

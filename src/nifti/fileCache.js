@@ -12,9 +12,9 @@ const cache = {};
  * should be parsed for the file path to be extracted
  */
 function add (imageId, fileContents, shouldParseImageId = false) {
-  const { imagePath } = shouldParseImageId ? parsedImageId(imageId) : { imagePath: imageId };
+  const { filePath } = shouldParseImageId ? parsedImageId(imageId) : { filePath: imageId };
 
-  cache[imagePath] = fileContents;
+  cache[filePath] = fileContents;
 }
 
 
@@ -28,21 +28,21 @@ function add (imageId, fileContents, shouldParseImageId = false) {
  * file contents
  */
 function get (imageId, shouldParseImageId = false) {
-  const { imagePath } = shouldParseImageId ? parsedImageId(imageId) : { imagePath: imageId };
+  const { filePath } = shouldParseImageId ? parsedImageId(imageId) : { filePath: imageId };
 
-  return cache[imagePath];
+  return cache[filePath];
 }
 
 
 function remove (imageId, shouldParseImageId = false) {
-  const { imagePath } = shouldParseImageId ? parsedImageId(imageId) : { imagePath: imageId };
+  const { filePath } = shouldParseImageId ? parsedImageId(imageId) : { filePath: imageId };
 
-  delete cache[imagePath];
+  delete cache[filePath];
 }
 
 
 function purge () {
-  Object.keys(cache).forEach((imagePath) => delete cache[imagePath]);
+  Object.keys(cache).forEach((filePath) => delete cache[filePath]);
 }
 
 export default {

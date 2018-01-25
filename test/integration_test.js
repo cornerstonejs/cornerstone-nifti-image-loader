@@ -2,7 +2,7 @@
 import { expect } from 'chai';
 import niftiImageLoader from '../src/nifti/index.js';
 
-const url = 'nifti:/base/test/data/';
+const url = 'nifti:///base/test/data/';
 
 describe('loadImage', function () {
   it('should properly load an uncompressed file (.nii)', function (done) {
