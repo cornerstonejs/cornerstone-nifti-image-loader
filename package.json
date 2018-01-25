@@ -77,6 +77,8 @@
     "webpack": "^3.8.1"
   },
   "dependencies": {
+    "ndarray": "^1.0.18",
+    "ndarray-unpack": "^1.0.0",
     "nifti-reader-js": "^0.5.4"
   }
 }

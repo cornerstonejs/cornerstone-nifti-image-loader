@@ -8,7 +8,7 @@ const nifti = {
     const { filePath, sliceDimension, sliceIndex } = parsedImageId(imageId);
 
     const promise = fileLoader.loadFile(filePath, imageId).then(
-      (data) => createImage(imageId, data, sliceIndex));
+      (data) => createImage(imageId, data, sliceDimension, sliceIndex));
 
     return { promise };
   },

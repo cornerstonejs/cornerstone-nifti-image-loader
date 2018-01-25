@@ -177,6 +177,7 @@
 
 <!-- include the cornerstoneNIFTIImageLoader library -->
 <script src="../../dist/cornerstoneNIFTIImageLoader.js"></script>
+<script src="../../dist/parsedImageId.js"></script>
 
 <script>
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
@@ -185,6 +186,7 @@
 
   function loadAndViewImage(imageId) {
     const element = document.getElementById('nifti-image');
+    const { filePath, sliceDimension, sliceIndex } = parsedImageId.default(imageId);
 
     try {
       const start = new Date().getTime();
@@ -192,8 +194,8 @@
         console.log(image);
         const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageId).numberOfFrames;
         const stack = {
-          currentImageIdIndex: 0,
-          imageIds: Array.from(Array(numberOfSlices), (_, i) => `${imageId}#${i}`)
+          currentImageIdIndex: sliceIndex,
+          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti://${filePath}#${sliceDimension}-${i}`)
         };
 
         const viewport = cornerstone.getDefaultViewportForImage(element, image);

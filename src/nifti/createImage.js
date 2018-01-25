@@ -1,21 +1,25 @@
+/* eslint import/extensions:0 */
 import { external } from '../externalModules.js';
 import metaDataManager from './metaData/metaDataManager.js';
 import getMinMax from '../shared/getMinMax.js';
+import ndarray from 'ndarray';
+import unpack from 'ndarray-unpack';
 
 /**
  * creates a cornerstone Image object for the specified Image and imageId
  *
  * @param imageId the imageId of the image being created
  * @param data the contents of the file being loaded
+ * @param sliceDimension the dimension of the slice plane
  * @param sliceIndex the slice index to be shown
  * @returns Cornerstone Image Object
  */
-export default function (imageId, data, sliceIndex, sliceDimension) {
+export default function (imageId, data, sliceDimension, sliceIndex) {
   const niftiReader = external.niftiReader;
 
   const promise = new Promise(function (resolve, reject) {
-    let niftiHeader = null;
-    let niftiImage = null;
+    // let niftiHeader = null;
+    // let niftiImage = null;
 
     if (niftiReader.isCompressed(data)) {
       data = niftiReader.decompress(data);
@@ -28,28 +32,58 @@ export default function (imageId, data, sliceIndex, sliceDimension) {
     }
 
     // reads the header with the metadata
-    niftiHeader = niftiReader.readHeader(data);
+    const niftiHeader = niftiReader.readHeader(data);
+
     console.log(niftiHeader.toFormattedString());
     console.dir(niftiHeader);
 
     // TODO do we need to differentiate among the several intent codes?
+    // are those different intents used in real life?
     // console.log(niftiHeader.intent_name);
-
-    // reads the image data
-    niftiImage = niftiReader.readImage(niftiHeader, data);
 
     // converts the image data into a proper typed array
     const { isColored, isFloat, bitDepth, ArrayConstructor } = getMemoryStorageRequirements(niftiHeader);
+    const [, xLength, yLength, zLength] = niftiHeader.dims;
+
+    // reads the image data
+    const plainArrayImageData = niftiReader.readImage(niftiHeader, data)
+    const imageData = new ArrayConstructor(plainArrayImageData);
+    let niftiImage = ndarray(imageData, [xLength, yLength, zLength]);
+
+    let imageWidth = xLength;
+    let imageHeight = yLength;
+
+    switch (sliceDimension) {
+    case 'x':
+      // niftiImage.transpose(1, 2, 0);
+      niftiImage = niftiImage.pick(null, null, sliceIndex);
+      imageWidth = yLength;
+      imageHeight = zLength;
+      break;
+
+    case 'y':
+      // niftiImage.transpose(2, 0, 1);
+      niftiImage = niftiImage.pick(null, sliceIndex, null);
+      imageWidth = zLength;
+      imageHeight = xLength;
+      break;
+
+    case 'z':
+      niftiImage = niftiImage.pick(sliceIndex, null, null);
+      break;
+    }
+
 
     // determines the number of columns and rows of the image
-    const imageWidth = niftiHeader.dims[1];
-    const imageHeight = niftiHeader.dims[2];
+    // const imageWidth = niftiHeader.dims[1];
+    // const imageHeight = niftiHeader.dims[2];
 
     // determines the length and beginning of the slice in bytes (not in 'typedArray indices')
-    const sliceLength = imageWidth * imageHeight * (bitDepth / 8);
-    const sliceByteIndex = sliceIndex * sliceLength;
+    // const sliceLength = imageWidth * imageHeight * (bitDepth / 8);
+    // const sliceByteIndex = sliceIndex * sliceLength;
 
-    niftiImage = new ArrayConstructor(niftiImage.slice(sliceByteIndex, sliceByteIndex + sliceLength));
+    // niftiImage = new ArrayConstructor(niftiImage.pick(null, null, sliceIndex));
+    niftiImage = new ArrayConstructor([].concat.apply([], unpack(niftiImage)))
     console.dir(niftiImage);
 
     // TODO should we load potential extensions on the nifti file? is this necessary?
@@ -136,6 +170,7 @@ export default function (imageId, data, sliceIndex, sliceDimension) {
       maxPixelValue,
       rowPixelSpacing: rowPixelDimension,
       rows: imageHeight,
+      // sizeInBytes: niftiImage.size * niftiImage.data.BYTES_PER_ELEMENT, // niftiImage.byteLength,
       sizeInBytes: niftiImage.byteLength,
       slope,
       width: imageWidth,
@@ -143,7 +178,13 @@ export default function (imageId, data, sliceIndex, sliceDimension) {
       windowWidth,
       decodeTimeInMS: 0,
       floatPixelData,
-      getPixelData: () => niftiImage,
+      getPixelData: () => {
+        // const converted = new ArrayConstructor([].concat.apply([], unpack(niftiImage)));
+        //
+        // console.log(converted);
+        // return converted;
+        return niftiImage
+      },
       render
     });
   });
