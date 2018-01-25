@@ -1,7 +1,7 @@
 import parsedImageId from './parsedImageId.js';
 import fileLoader from './fileLoader.js';
 import createImage from './createImage.js';
-import metaDataProvider from './metaData/metaDataProvider.js';
+import { metaDataProvider } from './metaData/metaDataProvider.js';
 
 const nifti = {
   loadImage (imageId) {

@@ -2,9 +2,18 @@ import metaDataManager from './metaDataManager.js';
 import { decimalToFraction } from './decimalToFraction.js';
 import { external } from '../../externalModules.js';
 
-const niftiReader = external.niftiReader;
+// const niftiReader = external.niftiReader;
+const dependencies = {
+  metaDataManager,
+  decimalToFraction,
+  niftiReader: external.niftiReader
+};
 
-function metaDataProvider (type, imageId) {
+export function metaDataProvider (type, imageId) {
+  // fetches injected dependencies
+  const niftiReader = dependencies.niftiReader;
+  const metaDataManager = dependencies.metaDataManager;
+
   const metaData = metaDataManager.get(imageId);
 
   if (!metaData) {
@@ -15,30 +24,39 @@ function metaDataProvider (type, imageId) {
   case 'imagePlaneModule': {
     return { };
   }
+
   case 'imagePixelModule': {
     return {
       samplesPerPixel: getSamplesPerPixel(metaData),
-      photometricInterpretation: getPhotometricInterpretation(metaData),
+      photometricInterpretation: getPhotometricInterpretation(metaData, niftiReader),
       rows: metaData.dims[2], // TODO what if z is not the slice dim?
       columns: metaData.dims[1], // TODO what if z is not the slice dim?
       bitsAllocated: metaData.numBitsPerVoxel,
       bitsStored: metaData.numBitsPerVoxel,
       highBit: metaData.numBitsPerVoxel - 1,
-      pixelRepresentation: getPixelRepresentation(metaData),
+      pixelRepresentation: getPixelRepresentation(metaData, niftiReader),
       planarConfiguration: getPlanarConfiguration(metaData),
       pixelAspectRatio: getPixelAspectRatio(metaData),
       smallestPixelValue: metaData.calculated.minPixelValue,
       largestPixelValue: metaData.calculated.maxPixelValue
     };
   }
-  case 'voiLutModule':
-    return {
 
-    };
   case 'modalityLutModule':
     return {
-
+      rescaleIntercept: metaData.scl_inter,
+      rescaleSlope: metaData.scl_slope,
+      rescaleType: 'US',
+      modalityLutSequence: undefined
     };
+
+  case 'voiLutModule':
+    return {
+      windowCenter: getWindowCenter(metaData),
+      windowWidth: getWindowWidth(metaData),
+      voiLutSequence: undefined
+    };
+
   default:
     return undefined;
   }
@@ -47,13 +65,13 @@ function metaDataProvider (type, imageId) {
 function getSamplesPerPixel (metaData) {
   // the fifth dimension (metaData.dims[5]), if present, represents the
   // samples per voxel
-  const hasFifthDimensionSpecified = metaData[0] >= 5;
-  const hasSamplesPerVoxelSpecified = hasFifthDimensionSpecified && (metaData[5] > 1);
+  const hasFifthDimensionSpecified = metaData.dims[0] >= 5;
+  const hasSamplesPerVoxelSpecified = hasFifthDimensionSpecified && (metaData.dims[5] > 1);
 
-  return hasSamplesPerVoxelSpecified ? metaData[5] : 1;
+  return hasSamplesPerVoxelSpecified ? metaData.dims[5] : 1;
 }
 
-function getPhotometricInterpretation (metaData) {
+function getPhotometricInterpretation (metaData, niftiReader) {
   const dataTypeCode = metaData.datatypeCode;
   const samplesPerPixel = getSamplesPerPixel(metaData);
   const isRGB = dataTypeCode === niftiReader.NIFTI1.TYPE_RGB && samplesPerPixel === 3;
@@ -68,7 +86,7 @@ function getPhotometricInterpretation (metaData) {
   return 'MONOCHROME2';
 }
 
-function getPixelRepresentation (metaData) {
+function getPixelRepresentation (metaData, niftiReader) {
   const dataTypeCode = metaData.datatypeCode;
 
   switch (dataTypeCode) {
@@ -83,7 +101,7 @@ function getPixelRepresentation (metaData) {
   case niftiReader.NIFTI1.TYPE_INT32:
   case niftiReader.NIFTI1.TYPE_INT64:
     // '0001H' means signed integer, 2-complement
-    return '0000H';
+    return '0001H';
   case niftiReader.NIFTI1.TYPE_FLOAT32:
   case niftiReader.NIFTI1.TYPE_FLOAT64:
   case niftiReader.NIFTI1.TYPE_RGB:
@@ -106,6 +124,8 @@ function getPlanarConfiguration (metaData) {
 }
 
 function getPixelAspectRatio (metaData) {
+  const decimalToFraction = dependencies.decimalToFraction;
+
   const horizontalSize = metaData.pixDims[1]; // TODO what if z is not the slice dim?
   const verticalSize = metaData.pixDims[2]; // TODO what if z is not the slice dim?
   const fraction = decimalToFraction(verticalSize / horizontalSize);
@@ -113,4 +133,23 @@ function getPixelAspectRatio (metaData) {
   return `${fraction.numerator}/${fraction.denominator}`;
 }
 
-export default metaDataProvider;
+function getWindowCenter (metaData) {
+  return (metaData.cal_min + metaData.cal_max) / 2;
+}
+
+function getWindowWidth (metaData) {
+  return metaData.cal_max - metaData.cal_min;
+}
+
+
+export function metaDataProviderBuilder ({
+  metaDataManager,
+  decimalToFraction,
+  niftiReader
+}) {
+  dependencies.metaDataManager = metaDataManager;
+  dependencies.decimalToFraction = decimalToFraction;
+  dependencies.niftiReader = niftiReader;
+
+  return metaDataProvider;
+}

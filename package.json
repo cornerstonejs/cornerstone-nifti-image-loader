@@ -72,6 +72,7 @@
     "phantomjs": "^2.1.7",
     "promise-polyfill": "^6.1.0",
     "shx": "^0.2.2",
+    "sinon": "^4.2.1",
     "uglify-js": "^3.2.0",
     "webpack": "^3.8.1"
   },
