@@ -167,7 +167,7 @@ describe('#metaDataProvider', () => {
 
   it('should return imagePixelModule meta data for image with FLOAT values', () => {
     const metaData = {
-      dims: [1, 20, 25, 3, 1, 1, 1, 1, 1],
+      dims: [3, 20, 25, 3, 1, 1, 1, 1, 1],
       pixDims: [1, 5, 5, 1],
       numBitsPerVoxel: 16,
       calculated: {
@@ -196,6 +196,24 @@ describe('#metaDataProvider', () => {
     expect(result.smallestPixelValue).to.be.equal(0);
     expect(result.largestPixelValue).to.be.equal(65536);
   });
+
+  it('should return multiFrameModule meta data', () => {
+    const metaData = {
+      dims: [3, 20, 25, 100, 1, 1, 1, 1, 1],
+      pixDims: [1, 5, 5, 1],
+      numBitsPerVoxel: 16
+    };
+
+    stubMetaDataManager('nifti:sample.nii', metaData);
+
+    const result = metaDataProvider('multiFrameModule', 'nifti:sample.nii');
+
+    expect(result).to.exist;
+    expect(result.numberOfFrames).to.equal(100);
+    expect(result.frameIncrementPointer).to.be.undefined;
+    expect(result.stereoPairsPresent).to.equal('NO');
+  });
+
 
   // stubs the metaDataManager.get method to return the provided metaData object
   function stubMetaDataManager (imageId, metaData) {

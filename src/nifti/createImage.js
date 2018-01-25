@@ -10,7 +10,7 @@ import getMinMax from '../shared/getMinMax.js';
  * @param sliceIndex the slice index to be shown
  * @returns Cornerstone Image Object
  */
-export default function (imageId, data, sliceIndex) {
+export default function (imageId, data, sliceIndex, sliceDimension) {
   const niftiReader = external.niftiReader;
 
   const promise = new Promise(function (resolve, reject) {

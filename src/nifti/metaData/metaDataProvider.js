@@ -57,6 +57,12 @@ export function metaDataProvider (type, imageId) {
       voiLutSequence: undefined
     };
 
+  case 'multiFrameModule':
+    return {
+      numberOfFrames: metaData.dims[3], // TODO what if z is not the slice dimension?
+      frameIncrementPointer: undefined,
+      stereoPairsPresent: 'NO'
+    };
   default:
     return undefined;
   }
