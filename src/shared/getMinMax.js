@@ -1,7 +1,7 @@
 /**
  * @typedef {Object} MinMax
- * @property {number} min The minimum value in the array
- * @property {number} max The maximum value in the array
+ * @property {Number} min The minimum value in the array
+ * @property {Number} max The maximum value in the array
  */
 
 /**
@@ -13,6 +13,11 @@
  * rely on it and calculate the values ourselves.
  * @param {Array} values Array of values from which we want to know the minimum
  * and maximum values.
+ *
+ * @example
+ * let result = getMinMax([5, -1, 3])
+ * result.min === -1;
+ * result.max === 5;
  *
  * @return {MinMax} An object containing minimum
  */

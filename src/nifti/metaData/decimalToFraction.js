@@ -1,6 +1,15 @@
 // This utility was borrowed/adapted from Erik Garrison's 'fractional' lib
 // https://github.com/ekg/fraction.js/blob/master/index.js
 
+
+/**
+ * Represents a fraction.
+ * @typedef {Object} Fraction
+ * @property {Number} numerator The numerator of a fraction
+ * @property {Number} denominator The denominator of a fraction
+ *
+ */
+
 class Fraction {
   constructor (numerator, denominator) {
     this.numerator = numerator;
@@ -8,6 +17,21 @@ class Fraction {
   }
 }
 
+
+/**
+ * decimalToFraction - Returns an object representing an integer fraction,
+ * ie, with integer numerator and integer denominator. The fraction is
+ * normalized to have the minimum numerator and denominator
+ * (eg, 2/10 becomes 1/5).
+ * @example
+ * let fraction decimalToFraction(0.25);
+ * fraction.numerator === 1;
+ * fraction.denominator === 4;
+ *
+ * @param  {Number} number a number, which can be positive/negative, integer
+ * or decimal.
+ * @return {Fraction} the normalized integer fraction that represent the number
+ */
 function decimalToFraction (number) {
   if (typeof number !== 'number' || number instanceof Number) {
     throw new Error(`The provided argument (${number}) is not a number.`);
@@ -48,6 +72,16 @@ function roundToPlaces (number, places) {
   return Math.round(number * greatness) / greatness;
 }
 
+
+/**
+ * gcf - Determines the greatest common factor between 2 numbers.
+ * @example
+ * gcf(4, 10) === 2;
+ *
+ * @param  {Number} a a number
+ * @param  {Number} b another
+ * @return {Number}   their greatest common factor
+ */
 function gcf (a, b) {
   if (!(typeof a === 'number' || a instanceof Number) || !(typeof b === 'number' || b instanceof Number)) {
     throw new Error(`Greatest common factor requires 2 numbers to compute. What was provided: ${a} and ${b}.`);
