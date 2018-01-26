@@ -1,4 +1,5 @@
 /* eslint import/extensions:0 */
+/* eslint prefer-spread:0 */
 import { external } from '../externalModules.js';
 import metaDataManager from './metaData/metaDataManager.js';
 import getMinMax from '../shared/getMinMax.js';
@@ -18,9 +19,6 @@ export default function (imageId, data, sliceDimension, sliceIndex) {
   const niftiReader = external.niftiReader;
 
   const promise = new Promise(function (resolve, reject) {
-    // let niftiHeader = null;
-    // let niftiImage = null;
-
     if (niftiReader.isCompressed(data)) {
       data = niftiReader.decompress(data);
     }
@@ -34,57 +32,53 @@ export default function (imageId, data, sliceDimension, sliceIndex) {
     // reads the header with the metadata
     const niftiHeader = niftiReader.readHeader(data);
 
-    console.log(niftiHeader.toFormattedString());
-    console.dir(niftiHeader);
-
     // TODO do we need to differentiate among the several intent codes?
     // are those different intents used in real life?
     // console.log(niftiHeader.intent_name);
 
     // converts the image data into a proper typed array
-    const { isColored, isFloat, bitDepth, ArrayConstructor } = getMemoryStorageRequirements(niftiHeader);
+    const { isColored, isFloat, ArrayConstructor } = getMemoryStorageRequirements(niftiHeader);
     const [, xLength, yLength, zLength] = niftiHeader.dims;
 
-    // reads the image data
-    const plainArrayImageData = niftiReader.readImage(niftiHeader, data)
-    const imageData = new ArrayConstructor(plainArrayImageData);
-    let niftiImage = ndarray(imageData, [xLength, yLength, zLength]);
+    // reads the image data, putting it in an ndarray (multi-dimensional view of a 1d array)
+    const imageData = new ArrayConstructor(niftiReader.readImage(niftiHeader, data));
+    let niftiImage = ndarray(imageData, [xLength, yLength, zLength], [1, xLength, xLength * yLength]);
 
-    let imageWidth = xLength;
-    let imageHeight = yLength;
+    let imageWidth;
+    let imageHeight;
 
+    // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
+    // also, determines the number of columns and rows of the image
     switch (sliceDimension) {
     case 'x':
-      // niftiImage.transpose(1, 2, 0);
-      niftiImage = niftiImage.pick(null, null, sliceIndex);
+      niftiImage = niftiImage.pick(sliceIndex, null, null);
       imageWidth = yLength;
       imageHeight = zLength;
       break;
 
     case 'y':
-      // niftiImage.transpose(2, 0, 1);
       niftiImage = niftiImage.pick(null, sliceIndex, null);
-      imageWidth = zLength;
-      imageHeight = xLength;
+      imageWidth = xLength;
+      imageHeight = zLength;
       break;
 
     case 'z':
-      niftiImage = niftiImage.pick(sliceIndex, null, null);
+      niftiImage = niftiImage.pick(null, null, sliceIndex);
+      imageWidth = xLength;
+      imageHeight = yLength;
       break;
     }
 
+    // now we need to transpose (i, j) => (j, i) as we consider x lateral
+    // and y vertical,
+    // but ndarray considers the first dimension (i) to be vertical
+    niftiImage = niftiImage.transpose(1, 0);
 
-    // determines the number of columns and rows of the image
-    // const imageWidth = niftiHeader.dims[1];
-    // const imageHeight = niftiHeader.dims[2];
+    // transform the ndarray back into a typed array:
+    // 1. 'unpack' turns it into array of arrays
+    // 2. [].concat.apply flattens it into a 1D array
+    niftiImage = new ArrayConstructor([].concat.apply([], unpack(niftiImage)));
 
-    // determines the length and beginning of the slice in bytes (not in 'typedArray indices')
-    // const sliceLength = imageWidth * imageHeight * (bitDepth / 8);
-    // const sliceByteIndex = sliceIndex * sliceLength;
-
-    // niftiImage = new ArrayConstructor(niftiImage.pick(null, null, sliceIndex));
-    niftiImage = new ArrayConstructor([].concat.apply([], unpack(niftiImage)))
-    console.dir(niftiImage);
 
     // TODO should we load potential extensions on the nifti file? is this necessary?
     // if (niftiReader.hasExtension(niftiHeader)) {
@@ -109,7 +103,7 @@ export default function (imageId, data, sliceDimension, sliceIndex) {
     // determines the min, max pixel values and the slope and intercept
     // if the pixel data is represented by floating point, we need to convert
     if (isFloat) {
-      const conversionResult = convertToUInt8PixelData(niftiImage);
+      const conversionResult = convertToUInt16PixelData(niftiImage);
 
       minPixelValue = conversionResult.min;
       maxPixelValue = conversionResult.max;
@@ -170,7 +164,6 @@ export default function (imageId, data, sliceDimension, sliceIndex) {
       maxPixelValue,
       rowPixelSpacing: rowPixelDimension,
       rows: imageHeight,
-      // sizeInBytes: niftiImage.size * niftiImage.data.BYTES_PER_ELEMENT, // niftiImage.byteLength,
       sizeInBytes: niftiImage.byteLength,
       slope,
       width: imageWidth,
@@ -178,13 +171,7 @@ export default function (imageId, data, sliceDimension, sliceIndex) {
       windowWidth,
       decodeTimeInMS: 0,
       floatPixelData,
-      getPixelData: () => {
-        // const converted = new ArrayConstructor([].concat.apply([], unpack(niftiImage)));
-        //
-        // console.log(converted);
-        // return converted;
-        return niftiImage
-      },
+      getPixelData: () => niftiImage,
       render
     });
   });
@@ -202,7 +189,7 @@ function determineWindowValues (minPixelValue, maxPixelValue, slope, intercept) 
   };
 }
 
-function convertToUInt8PixelData (floatPixelData) {
+function convertToUInt16PixelData (floatPixelData) {
   const floatMinMax = getMinMax(floatPixelData);
   const floatRange = Math.abs(floatMinMax.max - floatMinMax.min);
   const intRange = 65535;
@@ -233,7 +220,6 @@ function convertToUInt8PixelData (floatPixelData) {
 function getMemoryStorageRequirements (niftiHeader) {
   const niftiReader = external.niftiReader;
   const dataTypeCode = niftiHeader.datatypeCode;
-  const bitDepth = niftiHeader.numBitsPerVoxel;
   let isColored = false;
   let isFloat = false;
   let ArrayConstructor;
@@ -283,7 +269,6 @@ function getMemoryStorageRequirements (niftiHeader) {
   return {
     isColored,
     isFloat,
-    bitDepth,
     ArrayConstructor
   };
 }
