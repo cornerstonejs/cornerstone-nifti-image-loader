@@ -5,10 +5,9 @@ import { metaDataProvider } from './metaData/metaDataProvider.js';
 
 const nifti = {
   loadImage (imageId) {
-    const { filePath, sliceDimension, sliceIndex } = parsedImageId(imageId);
-
+    const { filePath, slice } = parsedImageId(imageId);
     const promise = fileLoader.loadFile(filePath, imageId).then(
-      (data) => createImage(imageId, data, sliceDimension, sliceIndex));
+      (data) => createImage(imageId, data, slice));
 
     return { promise };
   },

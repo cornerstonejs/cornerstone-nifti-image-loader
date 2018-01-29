@@ -13,8 +13,10 @@ describe('#parsedImageId', () => {
 
     expect(result).to.deep.equal({
       filePath: 'brain.nii',
-      sliceDimension: 'z',
-      sliceIndex: 0,
+      slice: {
+        dimension: 'z',
+        index: 0
+      },
       wasSliceDimensionDefined: false,
       wasSliceIndexDefined: false
     });
@@ -25,8 +27,10 @@ describe('#parsedImageId', () => {
 
     expect(result).to.deep.equal({
       filePath: 'brain.nii',
-      sliceDimension: 'z',
-      sliceIndex: 100,
+      slice: {
+        dimension: 'z',
+        index: 100
+      },
       wasSliceDimensionDefined: false,
       wasSliceIndexDefined: true
     });
@@ -37,8 +41,10 @@ describe('#parsedImageId', () => {
 
     expect(result).to.deep.equal({
       filePath: 'brain.nii',
-      sliceDimension: 'x',
-      sliceIndex: 0,
+      slice: {
+        dimension: 'x',
+        index: 0
+      },
       wasSliceDimensionDefined: true,
       wasSliceIndexDefined: false
     });
@@ -49,8 +55,10 @@ describe('#parsedImageId', () => {
 
     expect(result).to.deep.equal({
       filePath: 'brain.nii',
-      sliceDimension: 'y',
-      sliceIndex: 25,
+      slice: {
+        dimension: 'y',
+        index: 25
+      },
       wasSliceDimensionDefined: true,
       wasSliceIndexDefined: true
     });

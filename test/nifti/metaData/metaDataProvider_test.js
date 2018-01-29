@@ -71,8 +71,8 @@ describe('#metaDataProvider', () => {
 
   it('should return voiLutModule meta data if there is such information for an imageId', () => {
     const metaData = {
-      cal_min: 50,
-      cal_max: 100
+      windowCenter: 75,
+      windowWidth: 50
     };
 
     stubMetaDataManager('nifti:sample.nii', metaData);
@@ -87,8 +87,8 @@ describe('#metaDataProvider', () => {
 
   it('should return modalityLutModule meta data if there is such information for an imageId', () => {
     const metaData = {
-      scl_inter: 0.5,
-      scl_slope: 1.25
+      intercept: 0.5,
+      slope: 1.25
     };
 
     stubMetaDataManager('nifti:sample.nii', metaData);
@@ -103,14 +103,16 @@ describe('#metaDataProvider', () => {
 
   it('should return imagePixelModule meta data for image with INTEGER MONOCHROME values', () => {
     const metaData = {
-      dims: [3, 80, 90, 100, 1, 1, 1, 1, 1],
-      pixDims: [1, 40, 10, 60],
-      numBitsPerVoxel: 8,
-      calculated: {
-        minPixelValue: 50,
-        maxPixelValue: 100
-      },
-      datatypeCode: niftiReader.NIFTI1.TYPE_UINT8
+      rows: 90,
+      columns: 80,
+      minPixelValue: 50,
+      maxPixelValue: 100,
+      header: {
+        dims: [3, 80, 90, 100, 1, 1, 1, 1, 1],
+        pixDims: [1, 40, 10, 60],
+        numBitsPerVoxel: 8,
+        datatypeCode: niftiReader.NIFTI1.TYPE_UINT8
+      }
     };
 
     stubMetaDataManager('nifti:sample.nii', metaData);
@@ -135,14 +137,16 @@ describe('#metaDataProvider', () => {
 
   it('should return imagePixelModule meta data for image with INTEGER RGB values', () => {
     const metaData = {
-      dims: [5, 40, 45, 50, 1, 3, 1, 1, 1],
-      pixDims: [1, 20, 10, 60],
-      numBitsPerVoxel: 8,
-      calculated: {
-        minPixelValue: 10,
-        maxPixelValue: 20
-      },
-      datatypeCode: niftiReader.NIFTI1.TYPE_RGB
+      rows: 45,
+      columns: 40,
+      minPixelValue: 10,
+      maxPixelValue: 20,
+      header: {
+        dims: [5, 40, 45, 50, 1, 3, 1, 1, 1],
+        pixDims: [1, 20, 10, 60],
+        numBitsPerVoxel: 8,
+        datatypeCode: niftiReader.NIFTI1.TYPE_RGB
+      }
     };
 
     stubMetaDataManager('nifti:sample.nii', metaData);
@@ -167,14 +171,16 @@ describe('#metaDataProvider', () => {
 
   it('should return imagePixelModule meta data for image with FLOAT values', () => {
     const metaData = {
-      dims: [3, 20, 25, 3, 1, 1, 1, 1, 1],
-      pixDims: [1, 5, 5, 1],
-      numBitsPerVoxel: 16,
-      calculated: {
-        minPixelValue: 0,
-        maxPixelValue: 65536
-      },
-      datatypeCode: niftiReader.NIFTI1.TYPE_FLOAT32
+      rows: 25,
+      columns: 20,
+      minPixelValue: 0,
+      maxPixelValue: 65536,
+      header: {
+        dims: [3, 20, 25, 3, 1, 1, 1, 1, 1],
+        pixDims: [1, 5, 5, 1],
+        numBitsPerVoxel: 16,
+        datatypeCode: niftiReader.NIFTI1.TYPE_FLOAT32
+      }
     };
 
     stubMetaDataManager('nifti:sample.nii', metaData);
@@ -199,9 +205,12 @@ describe('#metaDataProvider', () => {
 
   it('should return multiFrameModule meta data', () => {
     const metaData = {
-      dims: [3, 20, 25, 100, 1, 1, 1, 1, 1],
-      pixDims: [1, 5, 5, 1],
-      numBitsPerVoxel: 16
+      numberOfFrames: 100,
+      header: {
+        dims: [3, 20, 25, 100, 1, 1, 1, 1, 1],
+        pixDims: [1, 5, 5, 1],
+        numBitsPerVoxel: 16
+      }
     };
 
     stubMetaDataManager('nifti:sample.nii', metaData);

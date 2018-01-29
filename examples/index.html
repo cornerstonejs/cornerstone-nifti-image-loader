@@ -154,11 +154,11 @@
           <span class="badge badge-pill badge-primary"  id="rescaleSlope"></span>
         </div>
         <div class="metadata">
-          <span class="badge badge-pill badge-light">Max Stored Pixel Value:</span>
+          <span class="badge badge-pill badge-light">Min Stored Pixel Value:</span>
           <span class="badge badge-pill badge-primary"  id="minStoredPixelValue"></span>
         </div>
         <div class="metadata">
-          <span class="badge badge-pill badge-light">Min Stored Pixel Value:</span>
+          <span class="badge badge-pill badge-light">Max Stored Pixel Value:</span>
           <span class="badge badge-pill badge-primary"  id="maxStoredPixelValue"></span>
         </div>
         <div class="metadata">
@@ -186,7 +186,7 @@
 
   function loadAndViewImage(imageId) {
     const element = document.getElementById('nifti-image');
-    const { filePath, sliceDimension, sliceIndex } = parsedImageId.default(imageId);
+    const { filePath, slice } = parsedImageId.default(imageId);
 
     try {
       const start = new Date().getTime();
@@ -194,8 +194,8 @@
         console.log(image);
         const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageId).numberOfFrames;
         const stack = {
-          currentImageIdIndex: sliceIndex,
-          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti://${filePath}#${sliceDimension}-${i}`)
+          currentImageIdIndex: slice.index,
+          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti://${filePath}#${slice.dimension}-${i}`)
         };
 
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
