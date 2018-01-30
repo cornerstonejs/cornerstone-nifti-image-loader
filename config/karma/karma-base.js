@@ -1,6 +1,9 @@
 const path = require('path');
 const webpackConfig = require('../webpack');
 
+/* eslint no-process-env:0 */
+process.env.CHROME_BIN = require('puppeteer').executablePath();
+
 // Deleting output.library to avoid "Uncaught SyntaxError: Unexpected token /" error
 // when running testes (var test/foo_test.js = ...)
 delete webpackConfig.output.library;
@@ -27,14 +30,19 @@ module.exports = {
     'node_modules/promise-polyfill/promise.min.js',
     'node_modules/cornerstone-core/dist/cornerstone.js',
     'test/**/*_test.js',
-    {pattern: 'test/data/*', included: false},
-    {pattern: 'dist/*', included: false},
+    {
+      pattern: 'test/data/*',
+      included: false
+    },
+    {
+      pattern: 'dist/*',
+      included: false
+    }
   ],
 
   plugins: [
     'karma-webpack',
     'karma-mocha',
-    'karma-phantomjs-launcher',
     'karma-chrome-launcher',
     'karma-firefox-launcher',
     'karma-coverage'
@@ -59,15 +67,29 @@ module.exports = {
   coverageReporter: {
     dir: './coverage',
     reporters: [
-      { type: 'html', subdir: 'html' },
-      { type: 'lcov', subdir: '.' },
-      { type: 'text', subdir: '.', file: 'text.txt' },
-      { type: 'text-summary', subdir: '.', file: 'text-summary.txt' }
+      {
+        type: 'html',
+        subdir: 'html'
+      },
+      {
+        type: 'lcov',
+        subdir: '.'
+      },
+      {
+        type: 'text',
+        subdir: '.',
+        file: 'text.txt'
+      },
+      {
+        type: 'text-summary',
+        subdir: '.',
+        file: 'text-summary.txt'
+      }
     ]
   },
 
   client: {
-    captureConsole: true,
+    captureConsole: true
   },
 
   browserConsoleLogOptions: {
