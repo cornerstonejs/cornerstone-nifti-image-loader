@@ -9,7 +9,12 @@ const nifti = {
     const promise = fileLoader.loadFile(filePath, imageId).then(
       (data) => createImage(imageId, data, slice));
 
-    return { promise };
+    // temporary 'hack' to make the loader work on both cornerstone@1 and @2
+    // @1 expected a promise to be returned directly, whereas @2 expects an
+    // object like { promise, cancelFn }
+    promise.promise = promise;
+
+    return promise;
   },
   register (cornerstone) {
     cornerstone.registerImageLoader('nifti', this.loadImage);
