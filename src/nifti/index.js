@@ -22,7 +22,7 @@ const nifti = {
   loadHeader (imageId) {
     const { filePath } = parsedImageId(imageId);
 
-    return fileLoader.loadFile(filePath, imageId).then(
+    return fileLoader.loadFile(filePath, imageId, { beforeAddingToCache: decompressNiftiData }).then(
       (data) => createHeader(imageId, data));
   },
 
