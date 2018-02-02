@@ -2,6 +2,10 @@ import { external } from '../externalModules.js';
 import fileCache from './fileCache.js';
 import { getOptions } from './options.js';
 
+function beforeAddingToCacheNoop (data) {
+  return data;
+}
+
 /**
  * loadFile - Loads a file doing an AJAX request to the URI provided by
  * filePath, optionally providing some HTTP headers to be sent.
@@ -13,7 +17,8 @@ import { getOptions } from './options.js';
  */
 function loadFile (filePath, imageId, {
   headers = { },
-  method = 'GET'
+  method = 'GET',
+  beforeAddingToCache = beforeAddingToCacheNoop
 } = {}, params = {}) {
 
   const fileLoaded = new Promise((resolve, reject) => {
@@ -28,7 +33,7 @@ function loadFile (filePath, imageId, {
     const xhr = new XMLHttpRequest();
     const options = getOptions();
 
-    xhr.open(method, filePath, true);
+    xhr.open(method, `//${filePath}`, true);
     xhr.responseType = 'arraybuffer';
     options.beforeSend(xhr, imageId);
     Object.keys(headers).forEach((name) => xhr.setRequestHeader(name, headers[name]));
@@ -48,11 +53,15 @@ function loadFile (filePath, imageId, {
     xhr.send();
   });
 
-  fileLoaded.then((data) => {
-    fileCache.add(filePath, data);
-  });
+  const fileLoadedPreparedAndCached = fileLoaded.
+    then(beforeAddingToCache).
+    then((data) => {
+      fileCache.add(filePath, data);
 
-  return fileLoaded;
+      return data;
+    });
+
+  return fileLoadedPreparedAndCached;
 }
 
 // builds a function that is going to be called when the request is loaded

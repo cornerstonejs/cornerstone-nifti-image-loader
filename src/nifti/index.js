@@ -3,11 +3,12 @@ import fileLoader from './fileLoader.js';
 import createImage from './createImage.js';
 import createHeader from './createHeader.js';
 import { metaDataProvider } from './metaData/metaDataProvider.js';
+import decompressNiftiData from './decompressNiftiData.js';
 
 const nifti = {
   loadImage (imageId) {
     const { filePath, slice } = parsedImageId(imageId);
-    const promise = fileLoader.loadFile(filePath, imageId).then(
+    const promise = fileLoader.loadFile(filePath, imageId, { beforeAddingToCache: decompressNiftiData }).then(
       (data) => createImage(imageId, data, slice));
 
     // temporary 'hack' to make the loader work on both cornerstone@1 and @2

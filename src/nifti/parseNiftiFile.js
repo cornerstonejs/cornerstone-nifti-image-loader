@@ -1,16 +1,5 @@
 
-export default function parseNiftiFile (nifti, rawData) {
-  let fileData = rawData;
-
-  // decompresses the file, if necessary
-  if (nifti.isCompressed(rawData)) {
-    fileData = nifti.decompress(rawData);
-  }
-
-  if (!nifti.isNIFTI(fileData)) {
-    throw new Error('The file being loaded is not a valid NIFTI file.');
-  }
-
+export default function parseNiftiFile (nifti, fileData) {
   // reads the header with the metadata and puts the
   // nifti-reader-js header inside '.header' prop,
   // as we're going to fill in the fileHeader itself
