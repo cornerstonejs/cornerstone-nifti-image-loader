@@ -1,6 +1,7 @@
 import parsedImageId from './parsedImageId.js';
 import fileLoader from './fileLoader.js';
 import createImage from './createImage.js';
+import createHeader from './createHeader.js';
 import { metaDataProvider } from './metaData/metaDataProvider.js';
 
 const nifti = {
@@ -16,6 +17,16 @@ const nifti = {
 
     return promise;
   },
+
+  loadHeader (imageId) {
+    const { filePath } = parsedImageId(imageId);
+
+    return fileLoader.loadFile(filePath, imageId).then(
+      (data) => createHeader(imageId, data));
+  },
+
+  parseImageId: parsedImageId,
+
   register (cornerstone) {
     cornerstone.registerImageLoader('nifti', this.loadImage);
     cornerstone.metaData.addProvider(metaDataProvider);
