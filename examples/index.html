@@ -199,8 +199,6 @@
         };
 
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
-        viewport.vflip = true;
-        viewport.hflip = true;
         cornerstone.displayImage(element, image, viewport);
         if(loaded === false) {
           cornerstoneTools.addStackStateManager(element, ['stack', 'wwwc', 'pan', 'zoom']);

@@ -47,7 +47,7 @@ export default function getDataView (header, imageData, slice) {
 
   // effectively slice the array on the desired dimension and calculates min
   // and max of the desired slice only
-  imageDataView = imageDataView.pick(...slicePick).transpose(1, 0);
+  imageDataView = imageDataView.pick(...slicePick).transpose(1, 0).step(-1, -1, 1);
   const minPixelValue = ops.inf(imageDataView);
   const maxPixelValue = ops.sup(imageDataView);
 
