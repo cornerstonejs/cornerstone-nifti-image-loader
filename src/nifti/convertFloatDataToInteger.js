@@ -18,8 +18,8 @@ const linearTransformationCwise = cwise({
 
 export default function convertFloatDataToInteger (imageDataView, metaData) {
   const intRange = Math.pow(2, 16); // 65536
-  const floatMin = metaData.minPixelValue;
-  const floatMax = metaData.maxPixelValue;
+  const floatMin = metaData.minGlobalPixelValue;
+  const floatMax = metaData.maxGlobalPixelValue;
   const floatRange = floatMax - floatMin;
   const slope = floatRange === 0 ? 1 : (floatRange / intRange);
   const intercept = floatMin;
@@ -28,7 +28,8 @@ export default function convertFloatDataToInteger (imageDataView, metaData) {
   const convertedImageDataView = ndarray(
     new Uint16Array(imageDataView.data.length),
     imageDataView.shape,
-    imageDataView.stride
+    imageDataView.stride,
+    imageDataView.offset
   );
 
   // converts from float to int, scaling each with a linear linearTransformation
