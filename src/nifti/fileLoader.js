@@ -33,8 +33,7 @@ function loadFile (filePath, imageId, {
     const xhr = new XMLHttpRequest();
     const options = getOptions();
 
-    // xhr.open(method, filePath, true);
-    xhr.open(method, `//${filePath}`, true);
+    xhr.open(method, filePath, true);
     xhr.responseType = 'arraybuffer';
     options.beforeSend(xhr, imageId);
     Object.keys(headers).forEach((name) => xhr.setRequestHeader(name, headers[name]));

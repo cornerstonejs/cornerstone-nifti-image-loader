@@ -2,7 +2,7 @@
 /**
  * parsedImageId - Returns an filePath, a sliceDimension and a sliceIndex
  * from a nifti imageId.
- * The format is nifti//:filePath#sliceDimension-sliceIndex, with sliceDimension
+ * The format is nifti://filePath#sliceDimension-sliceIndex, with sliceDimension
  * and sliceIndex being optional and defaulting to 'z' and 0 respectively.
  * Examples:
  * - nifti://brain.nii
@@ -36,7 +36,7 @@ export default function parsedImageId (imageId) {
    * - '([xyz])' is the sliceDimension
    * - '([\d]+)' is the sliceIndex
    */
-  const imageIdRegex = /^nifti:\/\/([^#]+)(?:#(?:(?=[xyz])(?:([xyz])(?:(?=-[\d]+)-([\d]+))?)|(?![xyz])([\d]+)))?$/;
+  const imageIdRegex = /^nifti:([^#]+)(?:#(?:(?=[xyz])(?:([xyz])(?:(?=-[\d]+)-([\d]+))?)|(?![xyz])([\d]+)))?$/;
   const regexResults = imageIdRegex.exec(imageId);
 
   if (!regexResults) {

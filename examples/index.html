@@ -59,7 +59,7 @@
             <div class="col-sm-7">
               <div class="input-group">
                 <div class="input-group-prepend">
-                  <div class="input-group-text">nifti://</div>
+                  <div class="input-group-text">nifti:</div>
                 </div>
                 <input class="form-control" type="text" id="nifti-URL" placeholder="Enter URL to NIFTI file or pick from list" list="sample-nifti-files">
                 <datalist id="sample-nifti-files">
@@ -195,7 +195,7 @@
         const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageId).numberOfFrames;
         const stack = {
           currentImageIdIndex: slice.index,
-          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti://${filePath}#${slice.dimension}-${i}`)
+          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti:${filePath}#${slice.dimension}-${i}`)
         };
 
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
@@ -257,8 +257,7 @@
   function downloadAndView() {
     let url = document.getElementById('nifti-URL').value;
 
-    // prefix the url with nifti:// so cornerstone can find the image loader
-    loadAndViewImage(`nifti://${url}`);
+    loadAndViewImage(`nifti:${url}`);
   }
 
   cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
