@@ -3,67 +3,115 @@ import ndarray from 'ndarray';
 import ops from 'ndarray-ops';
 
 export default function getDataView (header, imageData, slice) {
-  // determines the number of columns and rows of the image
-  let rows, columns, numberOfFrames;
-  let rowPixelSpacing, columnPixelSpacing;
+  let rowsIndex, columnsIndex, framesIndex;
 
   switch (slice.dimension) {
   case 'x':
-    rows = header.zLength;
-    columns = header.yLength;
-    numberOfFrames = header.xLength;
-    rowPixelSpacing = header.pixelSpacing[3];
-    columnPixelSpacing = header.pixelSpacing[2];
+    rowsIndex = 'xyz'.indexOf('z');
+    columnsIndex = 'xyz'.indexOf('y');
+    framesIndex = 'xyz'.indexOf('x');
     break;
 
   case 'y':
-    rows = header.zLength;
-    columns = header.xLength;
-    numberOfFrames = header.yLength;
-    rowPixelSpacing = header.pixelSpacing[3];
-    columnPixelSpacing = header.pixelSpacing[1];
+    rowsIndex = 'xyz'.indexOf('z');
+    columnsIndex = 'xyz'.indexOf('x');
+    framesIndex = 'xyz'.indexOf('y');
     break;
 
   case 'z':
-    rows = header.yLength;
-    columns = header.xLength;
-    numberOfFrames = header.zLength;
-    rowPixelSpacing = header.pixelSpacing[2];
-    columnPixelSpacing = header.pixelSpacing[1];
+    rowsIndex = 'xyz'.indexOf('y');
+    columnsIndex = 'xyz'.indexOf('x');
+    framesIndex = 'xyz'.indexOf('z');
     break;
   }
 
   const dimensions = [header.xLength, header.yLength, header.zLength];
-  const strides = [1, header.xLength, header.xLength * header.yLength];
 
-  // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
-  const dimensionIndex = 'xyz'.indexOf(slice.dimension);
-  const slicePick = arrayRotateRight([slice.index, null, null], dimensionIndex);
+  const rows = dimensions[rowsIndex];
+  const columns = dimensions[columnsIndex];
+  const numberOfFrames = dimensions[framesIndex];
+  const rowPixelSpacing = header.pixelSpacing[rowsIndex];
+  const columnPixelSpacing = header.pixelSpacing[columnsIndex];
+  const slicePixelSpacing = header.pixelSpacing[framesIndex];
+  const { rowCosines, columnCosines, rowFlip, columnFlip } = getPatientOrientation(header.orientationMatrix, columnsIndex, rowsIndex);
+
+  const strides = [1, header.xLength, header.xLength * header.yLength];
 
   // create an ndarray of the whole data, and calculate the min and max values
   let imageDataView = ndarray(imageData, dimensions, strides);
   const minGlobalPixelValue = ops.inf(imageDataView);
   const maxGlobalPixelValue = ops.sup(imageDataView);
 
+  // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
+  // const dimensionIndex = 'xyz'.indexOf(slice.dimension);
+  const slicePick = arrayRotateRight([slice.index, null, null], framesIndex);
+
   // effectively slice the array on the desired dimension and calculates min
   // and max of the desired slice only
-  imageDataView = imageDataView.pick(...slicePick).transpose(1, 0).step(-1, -1, 1);
+  // it is necessary to tranpose the matrix because cornerstone uses
+  // column-major matrices, whereas nifti data is represented row-major
+  imageDataView = imageDataView.pick(...slicePick).step(columnFlip, rowFlip).transpose(1, 0);
   const minPixelValue = ops.inf(imageDataView);
   const maxPixelValue = ops.sup(imageDataView);
 
   return {
     imageDataView,
     metaData: {
-      rows,
       columns,
+      rows,
       numberOfFrames,
-      rowPixelSpacing,
+      columnsIndex,
+      rowsIndex,
+      framesIndex,
       columnPixelSpacing,
+      rowPixelSpacing,
+      slicePixelSpacing,
+      // when returning, we swap rows/columns because cornerstone is column-major
+      // and nifti images are row-major
+      columnCosines: rowCosines,
+      rowCosines: columnCosines,
       minPixelValue,
       maxPixelValue,
       minGlobalPixelValue,
       maxGlobalPixelValue
     }
+  };
+}
+
+function getPatientOrientation (matrix, columnsIndex, rowsIndex) {
+  // gets the signs of the rotation matrix for the dimension being shown horizontally
+  // (columnSign) and the one shown vertically (rowSign)
+  const columnSign = matrix[columnsIndex][columnsIndex] < 0 ? -1 : 1;
+  const rowSign = matrix[rowsIndex][rowsIndex] < 0 ? -1 : 1;
+
+  // determines if the horizontal (columnFlip) and vertical (rowFlip) pixel data
+  // should be flipped
+  // horizontal: if the cosine (sign) is '+', we need to flip it, unless*
+  //   - rationale: DICOM's x axis grows to the left, NIFTI's grows to the right
+  //     * unless we are displaying 'x' on the columns (horizontally), as we
+  //              want to display 'left' always on the left side of the image
+  // vertical: if the cosine (sign) is '+', we need to flip it
+  //   - rationale: DICOM's y axis grows to posterior, NIFTI's grows to anterior
+  const columnFlip = (columnsIndex === 0) ? (columnSign === -1) : (columnSign === 1);
+  const rowFlip = rowSign === 1;
+
+  let columnCosines = [-matrix[0][columnsIndex], -matrix[1][columnsIndex], matrix[2][columnsIndex]];
+  let rowCosines = [-matrix[0][rowsIndex], -matrix[1][rowsIndex], matrix[2][rowsIndex]];
+
+  // if we flipped horizontally or vertically for display, we need to negate
+  // the cosines
+  if (columnFlip) {
+    columnCosines = columnCosines.map((cosine) => -cosine);
+  }
+  if (rowFlip) {
+    rowCosines = rowCosines.map((cosine) => -cosine);
+  }
+
+  return {
+    rowCosines,
+    columnCosines,
+    rowFlip: rowFlip ? -1 : 1,
+    columnFlip: columnFlip ? -1 : 1
   };
 }
 

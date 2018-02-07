@@ -28,6 +28,7 @@ export default function parseNiftiFile (nifti, fileData) {
     isDataInColors: isDataInColors(nifti, header.dims, header.datatypeCode)
   };
   const pixelSpacing = header.pixDims.slice(1, 4);
+  const orientationMatrix = getOrientationMatrix(header);
 
   // reads the image data using nifti-reader-js and puts it in a typed array
   const imageData = new dataType.TypedArrayConstructor(nifti.readImage(header, fileData));
@@ -45,10 +46,23 @@ export default function parseNiftiFile (nifti, fileData) {
       zLength,
       dataType,
       pixelSpacing,
+      orientationMatrix,
       header
     },
     imageData
   };
+}
+
+function getOrientationMatrix (header) {
+  if (header.affine) {
+    return header.affine;
+  }
+
+  return header.convertNiftiQFormToNiftiSForm(
+    header.quatern_b, header.quatern_c, header.quatern_d,
+    header.qoffset_x, header.qoffset_y, header.qoffset_z,
+    header.pixDims[1], header.pixDims[2], header.pixDims[3],
+    header.pixDims[0]);
 }
 
 function niftiDatatypeCodeToTypedArray (nifti, datatypeCode) {

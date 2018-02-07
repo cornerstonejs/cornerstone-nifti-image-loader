@@ -20,10 +20,28 @@ export function metaDataProvider (type, imageId) {
   }
 
   switch (type) {
+  case 'imagePlane':
   case 'imagePlaneModule': {
-    return { };
+    const imagePositionPatient = getPatientPosition(metaData);
+
+    return {
+      frameOfReferenceUID: imageId,
+      columns: metaData.columns,
+      rows: metaData.rows,
+      imageOrientationPatient: [...metaData.columnCosines, ...metaData.rowCosines],
+      columnCosines: metaData.columnCosines,
+      rowCosines: metaData.rowCosines,
+      imagePositionPatient,
+      // assuming slices contain no gaps between them (contiguous voxels),
+      // as the nifti file does not hold thickness/gap separately
+      sliceThickness: metaData.slicePixelSpacing,
+      // sliceLocation,
+      columnPixelSpacing: metaData.columnPixelSpacing,
+      rowPixelSpacing: metaData.rowPixelSpacing
+    };
   }
 
+  case 'imagePixel':
   case 'imagePixelModule': {
     return {
       samplesPerPixel: getSamplesPerPixel(metaData),
@@ -41,6 +59,7 @@ export function metaDataProvider (type, imageId) {
     };
   }
 
+  case 'modalityLut':
   case 'modalityLutModule':
     return {
       rescaleIntercept: metaData.intercept,
@@ -49,6 +68,7 @@ export function metaDataProvider (type, imageId) {
       modalityLutSequence: undefined
     };
 
+  case 'voiLut':
   case 'voiLutModule':
     return {
       windowCenter: metaData.windowCenter,
@@ -56,15 +76,24 @@ export function metaDataProvider (type, imageId) {
       voiLutSequence: undefined
     };
 
+  case 'multiFrame':
   case 'multiFrameModule':
     return {
       numberOfFrames: metaData.numberOfFrames,
       frameIncrementPointer: undefined,
       stereoPairsPresent: 'NO'
     };
+
   default:
     return undefined;
   }
+}
+
+// TODO should reflect the current slice? are the values correct?
+function getPatientPosition (metaData) {
+  const matrix = metaData.header.affine;
+
+  return [-matrix[0][3], -matrix[1][3], matrix[2][3]];
 }
 
 function getSamplesPerPixel (metaData) {
