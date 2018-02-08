@@ -4,12 +4,17 @@ import createImage from './createImage.js';
 import createHeader from './createHeader.js';
 import { metaDataProvider } from './metaData/metaDataProvider.js';
 import decompressNiftiData from './decompressNiftiData.js';
+import augmentPromise from './augmentPromise.js';
 
 const nifti = {
   loadImage (imageId) {
     const { filePath, slice } = parsedImageId(imageId);
-    const promise = fileLoader.loadFile(filePath, imageId, { beforeAddingToCache: decompressNiftiData }).then(
+    let promise = fileLoader.loadFile(filePath, imageId, { beforeAddingToCache: decompressNiftiData }).then(
       (data) => createImage(imageId, data, slice));
+
+    // temporary 'hack' to make the loader work with applications that expect
+    // jquery.deferred promises (such as the StudyPrefetcher in OHIF)
+    promise = augmentPromise(promise);
 
     // temporary 'hack' to make the loader work on both cornerstone@1 and @2
     // @1 expected a promise to be returned directly, whereas @2 expects an
