@@ -177,16 +177,15 @@
 
 <!-- include the cornerstoneNIFTIImageLoader library -->
 <script src="../../dist/cornerstoneNIFTIImageLoader.js"></script>
-<script src="../../dist/parsedImageId.js"></script>
 
 <script>
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
-
+  const parseImageId = cornerstoneNIFTIImageLoader.nifti.parseImageId;
   let loaded = false;
 
   function loadAndViewImage(imageId) {
     const element = document.getElementById('nifti-image');
-    const { filePath, slice } = parsedImageId.default(imageId);
+    const { filePath, slice } = parseImageId(imageId);
 
     try {
       const start = new Date().getTime();

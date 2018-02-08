@@ -8,8 +8,7 @@ const bannerPlugin = require('./plugins/banner');
 module.exports = {
   context,
   entry: {
-    cornerstoneNIFTIImageLoader: './imageLoader/index.js',
-    parsedImageId: './nifti/parsedImageId.js'
+    cornerstoneNIFTIImageLoader: './imageLoader/index.js'
   },
   target: 'web',
   output: {
