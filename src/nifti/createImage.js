@@ -2,10 +2,10 @@
 /* eslint prefer-spread:0 */
 import { external } from '../externalModules.js';
 import metaDataManager from './metaData/metaDataManager.js';
-import unpack from 'ndarray-unpack';
 import parseNiftiFile from './parseNiftiFile';
 import getDataView from './getDataView.js';
 import convertFloatDataToInteger from './convertFloatDataToInteger.js';
+import flattenNDarray from '../shared/flattenNDarray.js';
 
 /**
  * Creates a cornerstone Image object for the specified imageId.
@@ -23,7 +23,7 @@ export default function createImage (imageId, rawData, slice) {
       // uncompress and extract header into meta data and image data
       const niftiFile = parseNiftiFile(nifti, rawData);
       const { metaData } = niftiFile;
-      let { imageData } = niftiFile;
+      const { imageData } = niftiFile;
 
       // prepare the desired view of the data
       const dataView = getDataView(metaData, imageData, slice);
@@ -39,9 +39,7 @@ export default function createImage (imageId, rawData, slice) {
 
         imageDataView = conversion.convertedImageDataView;
         Object.assign(metaData, conversion.metaData, {
-          floatPixelData: new conversion.OriginalTypedArrayConstructor(
-            flattenNDarray(conversion.floatImageDataView)
-          )
+          floatPixelData: flattenNDarray(conversion.floatImageDataView, conversion.OriginalTypedArrayConstructor)
         });
       }
 
@@ -56,13 +54,13 @@ export default function createImage (imageId, rawData, slice) {
       }
 
       // transforms the multi-dimensional array back into 1D for cornerstone
-      imageData = new metaData.dataType.TypedArrayConstructor(flattenNDarray(imageDataView));
+      const pixelData = flattenNDarray(imageDataView, metaData.dataType.TypedArrayConstructor);
 
       // adds the meta data of this image to the meta data manager
       metaDataManager.add(imageId, metaData);
 
       // create image
-      const image = createCornerstoneImage(imageId, metaData, imageData);
+      const image = createCornerstoneImage(imageId, metaData, pixelData);
 
       resolve(image);
     } catch (error) {
@@ -73,7 +71,7 @@ export default function createImage (imageId, rawData, slice) {
   return promise;
 }
 
-function createCornerstoneImage (imageId, metaData, imageData) {
+function createCornerstoneImage (imageId, metaData, pixelData) {
   const cornerstone = external.cornerstone;
   const render = metaData.dataType.isDataInColors
     ? cornerstone.renderColorImage
@@ -91,14 +89,14 @@ function createCornerstoneImage (imageId, metaData, imageData) {
     maxPixelValue: metaData.maxPixelValue,
     rowPixelSpacing: metaData.rowPixelSpacing,
     rows: metaData.rows,
-    sizeInBytes: imageData.byteLength,
+    sizeInBytes: pixelData.byteLength,
     slope: metaData.slope,
     width: metaData.columns,
     windowCenter: metaData.windowCenter,
     windowWidth: metaData.windowWidth,
     decodeTimeInMS: 0,
     floatPixelData: metaData.floatPixelData,
-    getPixelData: () => imageData,
+    getPixelData: () => pixelData,
     render
   };
 }
@@ -111,8 +109,4 @@ function determineWindowValues (slope, intercept, minValue, maxValue) {
     windowCenter: (maxVoi + minVoi) / 2,
     windowWidth: (maxVoi - minVoi)
   };
-}
-
-function flattenNDarray (array) {
-  return [].concat.apply([], unpack(array));
 }
