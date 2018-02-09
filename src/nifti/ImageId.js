@@ -1,3 +1,8 @@
+
+/**
+ * Represents an imageId of this loader and has utilities for parsing
+ * (.fromURL) and serializing it (.url).
+ */
 export default class ImageId {
   constructor (filePath, { dimension, index }) {
     this.filePath = filePath;

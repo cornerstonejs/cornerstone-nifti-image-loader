@@ -4,6 +4,13 @@ const dependencies = {
   nifti: external.niftiReader
 };
 
+
+/**
+ * decompressNiftiData - Decompresses (if necessary) a nifti file data.
+ *
+ * @param  {ArrayBuffer} rawData the raw file data (compressed or not).
+ * @return {ArrayBuffer}         the decompressed file data.
+ */
 export default function decompressNiftiData (rawData) {
   const nifti = dependencies.nifti;
 

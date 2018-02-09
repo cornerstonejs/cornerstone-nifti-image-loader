@@ -1,5 +1,9 @@
 import cornerstoneEvents from './cornerstoneEvents.js';
 
+
+/**
+ * Fetches files and notifies Cornerstone of the relevant events.
+ */
 export default class FileFetcher {
   constructor ({
     method = 'GET',

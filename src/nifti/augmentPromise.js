@@ -19,7 +19,8 @@ function augmentPromise (original) {
       return value;
     }, (error) => {
       state = 'rejected';
-      throw error;
+
+      return error;
     });
 
     original.state = () => state;

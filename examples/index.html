@@ -180,21 +180,21 @@
 
 <script>
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
-  const parseImageId = cornerstoneNIFTIImageLoader.nifti.parseImageId;
+  const ImageId = cornerstoneNIFTIImageLoader.nifti.ImageId;
   let loaded = false;
 
   function loadAndViewImage(imageId) {
     const element = document.getElementById('nifti-image');
-    const { filePath, slice } = parseImageId(imageId);
+    const imageIdObject = ImageId.fromURL(imageId);
 
     try {
       const start = new Date().getTime();
-      cornerstone.loadAndCacheImage(imageId).then(function(image) {
+      cornerstone.loadAndCacheImage(imageIdObject.url).then(function(image) {
         console.log(image);
-        const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageId).numberOfFrames;
+        const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageIdObject.url).numberOfFrames;
         const stack = {
-          currentImageIdIndex: slice.index,
-          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti:${filePath}#${slice.dimension}-${i}`)
+          currentImageIdIndex: imageIdObject.slice.index,
+          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti:${imageIdObject.filePath}#${imageIdObject.slice.dimension}-${i}`)
         };
 
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
@@ -220,7 +220,7 @@
             return (typeof value === 'undefined' ? 'unspecified' : (value === 0 ? '(pixel)' : '(plane)'));
         }
 
-        const metaData = (type) => cornerstone.metaData.get(type, imageId);
+        const metaData = (type) => cornerstone.metaData.get(type, imageIdObject.url);
 
         document.getElementById('samplesPerPixel').textContent = metaData('imagePixelModule').samplesPerPixel;
         document.getElementById('photometricInterpretation').textContent = metaData('imagePixelModule').photometricInterpretation;

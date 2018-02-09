@@ -8,6 +8,11 @@ const determinePixelData = Symbol('determinePixelData');
 const getDimensionsIndices = Symbol('getDimensionsIndices');
 const getPatientOrientation = Symbol('getPatientOrientation');
 
+
+/**
+ * An orthogonal slice of a volume. The main property is .cornersoneImage,
+ * which exposes a Cornerstone Image Object.
+ */
 export default class Slice {
   constructor (volume, imageIdObject) {
     this.volume = volume;

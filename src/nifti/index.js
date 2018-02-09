@@ -1,16 +1,25 @@
-import parsedImageId from './parsedImageId.js';
-import fileLoader from './fileLoader.js';
-import createImage from './createImage.js';
-import createHeader from './createHeader.js';
+import metaDataManager from './metaData/metaDataManager.js';
 import { metaDataProvider } from './metaData/metaDataProvider.js';
-import decompressNiftiData from './decompressNiftiData.js';
+import VolumeAcquisition from './VolumeAcquisition.js';
+import ImageId from './ImageId.js';
 import augmentPromise from './augmentPromise.js';
+import cornerstoneEvents from './cornerstoneEvents.js';
 
 const nifti = {
   loadImage (imageId) {
-    const { filePath, slice } = parsedImageId(imageId);
-    let promise = fileLoader.loadFile(filePath, imageId, { beforeAddingToCache: decompressNiftiData }).then(
-      (data) => createImage(imageId, data, slice));
+    const imageIdObject = ImageId.fromURL(imageId);
+    const volumeAcquisition = VolumeAcquisition.getInstance();
+
+    cornerstoneEvents.imageLoadStart(imageIdObject);
+
+    let promise = volumeAcquisition.acquire(imageIdObject).
+      then((volume) => volume.slice(imageIdObject)).
+      then((slice) => {
+        metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
+        cornerstoneEvents.imageLoadEnd(imageIdObject);
+
+        return slice.cornerstoneImageObject;
+      });
 
     // temporary 'hack' to make the loader work with applications that expect
     // jquery.deferred promises (such as the StudyPrefetcher in OHIF)
@@ -24,14 +33,7 @@ const nifti = {
     return promise;
   },
 
-  loadHeader (imageId) {
-    const { filePath, slice } = parsedImageId(imageId);
-
-    return fileLoader.loadFile(filePath, imageId, { beforeAddingToCache: decompressNiftiData }).then(
-      (data) => createHeader(imageId, data, slice));
-  },
-
-  parseImageId: parsedImageId,
+  ImageId,
 
   register (cornerstone) {
     cornerstone.registerImageLoader('nifti', this.loadImage);

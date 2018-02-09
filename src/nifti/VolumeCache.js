@@ -1,4 +1,6 @@
-
+/**
+ * A cache that holds volumes.
+ */
 export default class VolumeCache {
   constructor () {
     this.volumeEntries = {};
@@ -26,6 +28,10 @@ export default class VolumeCache {
   }
 }
 
+
+/**
+ * An entry in the cache.
+ */
 class VolumeEntry {
   constructor (volume) {
     this.volume = volume;

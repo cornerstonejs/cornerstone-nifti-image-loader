@@ -18,7 +18,13 @@ const transformImageData = Symbol('transformImageData');
 const createVolume = Symbol('createVolume');
 const cacheVolume = Symbol('cacheVolume');
 
-// main class
+/* eslint class-methods-use-this: off */
+
+/**
+ * A singleton that is responsible for getting a Volume for a NIfTI imageId.
+ * It can either get it from its cache, or load a file with an asynchronous
+ * request and process it to return the volume. Main method is acquire(imageId).
+ */
 export default class VolumeAcquisition {
 
   constructor () {
@@ -70,7 +76,6 @@ export default class VolumeAcquisition {
   }
 
   // private methods
-  /* eslint class-methods-use-this: off */
   [decompress] (fileData) {
     return decompressNiftiData(fileData);
   }

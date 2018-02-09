@@ -1,7 +1,7 @@
 import metaDataManager from './metaDataManager.js';
 import { decimalToFraction } from './decimalToFraction.js';
 import { external } from '../../externalModules.js';
-import parsedImageId from '../parsedImageId.js';
+import ImageId from '../ImageId.js';
 
 const dependencies = {
   metaDataManager,
@@ -13,8 +13,8 @@ export function metaDataProvider (type, imageId) {
   // fetches injected dependencies
   const niftiReader = dependencies.niftiReader;
   const metaDataManager = dependencies.metaDataManager;
-
-  const metaData = metaDataManager.get(imageId);
+  const imageIdObject = ImageId.fromURL(imageId);
+  const metaData = metaDataManager.get(imageIdObject.url);
 
   if (!metaData) {
     return;
@@ -24,7 +24,7 @@ export function metaDataProvider (type, imageId) {
   case 'imagePlane':
   case 'imagePlaneModule': {
     const imagePositionPatient = getPatientPosition(metaData);
-    const frameOfReferenceUID = parsedImageId(imageId).filePath;
+    const frameOfReferenceUID = imageIdObject.filePath;
 
     return {
       frameOfReferenceUID,

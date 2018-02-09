@@ -1,5 +1,7 @@
+import { external } from '../externalModules.js';
 
-export default function parseNiftiFile (nifti, fileData) {
+export function parseNiftiHeader (fileData) {
+  const nifti = external.niftiReader;
   // reads the header with the metadata and puts the
   // nifti-reader-js header inside '.header' prop,
   // as we're going to fill in the fileHeader itself
@@ -30,25 +32,36 @@ export default function parseNiftiFile (nifti, fileData) {
   const pixelSpacing = header.pixDims.slice(1, 4);
   const orientationMatrix = getOrientationMatrix(header);
 
+  return {
+    slope,
+    intercept,
+    windowMinimumValue,
+    windowMaximumValue,
+    isWindowInfoAbsent,
+    xLength,
+    yLength,
+    zLength,
+    dataType,
+    pixelSpacing,
+    orientationMatrix,
+    header
+  };
+}
+
+export function parseNiftiFile (fileData, metaData) {
+  const nifti = external.niftiReader;
+
+  if (!metaData) {
+    metaData = parseNiftiHeader(fileData);
+  }
+
+  const TypedArrayConstructor = metaData.dataType.TypedArrayConstructor;
   // reads the image data using nifti-reader-js and puts it in a typed array
-  const imageData = new dataType.TypedArrayConstructor(nifti.readImage(header, fileData));
+  const imageData = new TypedArrayConstructor(nifti.readImage(metaData.header, fileData));
 
   // determines the meta data that depends on the image data
   return {
-    metaData: {
-      slope,
-      intercept,
-      windowMinimumValue,
-      windowMaximumValue,
-      isWindowInfoAbsent,
-      xLength,
-      yLength,
-      zLength,
-      dataType,
-      pixelSpacing,
-      orientationMatrix,
-      header
-    },
+    metaData,
     imageData
   };
 }
