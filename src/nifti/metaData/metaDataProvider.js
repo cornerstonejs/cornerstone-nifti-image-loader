@@ -13,12 +13,13 @@ export function metaDataProvider (type, imageId) {
   // fetches injected dependencies
   const niftiReader = dependencies.niftiReader;
   const metaDataManager = dependencies.metaDataManager;
-  const imageIdObject = ImageId.fromURL(imageId);
-  const metaData = metaDataManager.get(imageIdObject.url);
+  const metaData = metaDataManager.get(imageId);
 
   if (!metaData) {
     return;
   }
+
+  const imageIdObject = ImageId.fromURL(imageId);
 
   switch (type) {
   case 'imagePlane':
