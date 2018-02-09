@@ -1,6 +1,7 @@
 import metaDataManager from './metaDataManager.js';
 import { decimalToFraction } from './decimalToFraction.js';
 import { external } from '../../externalModules.js';
+import parsedImageId from '../parsedImageId.js';
 
 const dependencies = {
   metaDataManager,
@@ -16,16 +17,17 @@ export function metaDataProvider (type, imageId) {
   const metaData = metaDataManager.get(imageId);
 
   if (!metaData) {
-    return undefined;
+    return;
   }
 
   switch (type) {
   case 'imagePlane':
   case 'imagePlaneModule': {
     const imagePositionPatient = getPatientPosition(metaData);
+    const frameOfReferenceUID = parsedImageId(imageId).filePath;
 
     return {
-      frameOfReferenceUID: imageId,
+      frameOfReferenceUID,
       columns: metaData.columns,
       rows: metaData.rows,
       imageOrientationPatient: [...metaData.columnCosines, ...metaData.rowCosines],
@@ -85,7 +87,7 @@ export function metaDataProvider (type, imageId) {
     };
 
   default:
-    return undefined;
+    return;
   }
 }
 
