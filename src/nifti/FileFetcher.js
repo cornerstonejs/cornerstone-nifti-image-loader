@@ -82,7 +82,7 @@ function readyStateChange (options, params) {
     }
 
     if (this.readyState === 4) {
-      if (this.status === 200) {
+      if ([200, 206].includes(this.status)) {
         params.deferred.resolve(this.response);
       } else {
         params.deferred.reject(this);

@@ -11,6 +11,10 @@ export default class Volume {
     return new Slice(this, imageIdObject);
   }
 
+  get hasImageData () {
+    return this.imageDataNDarray && this.imageDataNDarray.data && this.imageDataNDarray.data.byteLength > 0;
+  }
+
   get sizeInBytes () {
     const integerArraySize = this.imageDataNDarray ? this.imageDataNDarray.data.byteLength : 0;
     const floatArraySize = this.floatImageDataView ? this.floatImageDataView.data.byteLength : 0;

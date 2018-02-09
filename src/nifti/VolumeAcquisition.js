@@ -30,6 +30,9 @@ export default class VolumeAcquisition {
   constructor () {
     this.volumeCache = new VolumeCache();
     this.fetcher = new FileFetcher({});
+    this.headerOnlyFetcher = new FileFetcher({ beforeSend: (xhr) =>
+      xhr.setRequestHeader('Range', 'bytes=0-10240')
+    });
   }
 
   static getInstance () {
@@ -44,7 +47,7 @@ export default class VolumeAcquisition {
     const volumeAcquiredPromise = new Promise((resolve, reject) => {
       const cachedVolume = this.volumeCache.get(imageIdObject);
 
-      if (cachedVolume) {
+      if (cachedVolume && cachedVolume.hasImageData) {
         resolve(cachedVolume);
 
         return;
@@ -75,9 +78,39 @@ export default class VolumeAcquisition {
     return volumeAcquiredPromise;
   }
 
+  acquireHeaderOnly (imageIdObject, isRangeRead = true) {
+    const volumeHeaderAcquiredPromise = new Promise((resolve, reject) => {
+      const cachedVolume = this.volumeCache.get(imageIdObject);
+
+      if (cachedVolume) {
+        resolve(cachedVolume);
+
+        return;
+      }
+
+      const fetcher = isRangeRead ? this.headerOnlyFetcher : this.fetcher;
+      const fileFetchedPromise = fetcher.fetch(imageIdObject);
+
+      fileFetchedPromise.
+        // decompress (if compressed) the file raw data
+        then((data) => this[decompress](data)).
+        // gather meta data of the file/volume
+        then((data) => this[readMetaData](data)).
+        // creates the volume: metadata + image data
+        then((data) => this[createVolume](data)).
+        // adds the volume to the cache
+        then((data) => this[cacheVolume](data, imageIdObject)).
+        // fulfills the volumeAcquiredPromise
+        then((data) => resolve(data)).
+        catch(reject);
+    });
+
+    return volumeHeaderAcquiredPromise;
+  }
+
   // private methods
-  [decompress] (fileData) {
-    return decompressNiftiData(fileData);
+  [decompress] (fileRawData) {
+    return decompressNiftiData(fileRawData);
   }
 
   [readMetaData] (decompressedFileData) {

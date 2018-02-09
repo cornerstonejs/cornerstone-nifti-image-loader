@@ -2,6 +2,7 @@ import { external } from '../externalModules.js';
 import flattenNDarray from '../shared/flattenNDarray.js';
 import arrayRotateRight from '../shared/arrayRotateRight.js';
 
+/* eslint class-methods-use-this: off */
 // private methods
 const determineMetaData = Symbol('determineMetaData');
 const determinePixelData = Symbol('determinePixelData');
@@ -22,7 +23,9 @@ export default class Slice {
     this.metaData = {};
 
     this[determineMetaData]();
-    this[determinePixelData]();
+    if (this.volume.hasImageData) {
+      this[determinePixelData]();
+    }
   }
 
   [determineMetaData] () {
@@ -111,7 +114,6 @@ export default class Slice {
     };
   }
 
-  /* eslint class-methods-use-this: off */
   [getPatientOrientation] (matrix, columnsIndex, rowsIndex) {
     // gets the signs of the rotation matrix for the dimension being shown horizontally
     // (columnSign) and the one shown vertically (rowSign)

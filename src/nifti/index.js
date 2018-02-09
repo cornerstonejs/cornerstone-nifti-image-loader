@@ -33,6 +33,26 @@ const nifti = {
     return promise;
   },
 
+  loadHeader (imageId, isRangeRead = true) {
+    const imageIdObject = ImageId.fromURL(imageId);
+    const volumeAcquisition = VolumeAcquisition.getInstance();
+
+    let promise = volumeAcquisition.acquireHeaderOnly(imageIdObject, isRangeRead).
+      then((volume) => volume.slice(imageIdObject)).
+      then((slice) => slice.compoundMetaData);
+
+    // temporary 'hack' to make the loader work with applications that expect
+    // jquery.deferred promises (such as the StudyPrefetcher in OHIF)
+    promise = augmentPromise(promise);
+
+    // temporary 'hack' to make the loader work on both cornerstone@1 and @2
+    // @1 expected a promise to be returned directly, whereas @2 expects an
+    // object like { promise, cancelFn }
+    promise.promise = promise;
+
+    return promise;
+  },
+
   ImageId,
 
   register (cornerstone) {
