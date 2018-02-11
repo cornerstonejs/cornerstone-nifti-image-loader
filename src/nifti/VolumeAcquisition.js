@@ -4,6 +4,7 @@ import FileFetcher from './FileFetcher.js';
 import decompressNiftiData from './decompressNiftiData.js';
 import { parseNiftiHeader, parseNiftiFile } from './parseNiftiFile.js';
 import convertFloatDataToInteger from './convertFloatDataToInteger.js';
+import ImageId from './ImageId.js';
 
 /* eslint import/extensions: off */
 import ndarray from 'ndarray';
@@ -29,9 +30,22 @@ export default class VolumeAcquisition {
 
   constructor () {
     this.volumeCache = new VolumeCache();
-    this.fetcher = new FileFetcher({});
-    this.headerOnlyFetcher = new FileFetcher({ beforeSend: (xhr) =>
-      xhr.setRequestHeader('Range', 'bytes=0-10240')
+    this.wholeFileFetcher = new FileFetcher({});
+    this.headerOnlyFetcher = new FileFetcher({
+      isFirstBytesOnly: true,
+      beforeSend: (xhr) => xhr.setRequestHeader('Range', 'bytes=0-10240'),
+      onHeadersReceived: (xhr, options, params) => {
+        // we wanted only the first bytes, but the server is sending the whole
+        // file (status 200 instead of 206)... then, to avoid fetching
+        // the whole file twice, we "copy" this fetch promise to the
+        // wholeFileFetcher
+        if (xhr.status === 200) {
+          const imageIdObject = ImageId.fromURL(params.imageId);
+          const promiseCacheEntry = this.headerOnlyFetcher.getFetchPromiseFromCache(imageIdObject);
+
+          this.wholeFileFetcher.addFetchPromiseToCache(promiseCacheEntry.promise, imageIdObject);
+        }
+      }
     });
   }
 
@@ -53,7 +67,7 @@ export default class VolumeAcquisition {
         return;
       }
 
-      const fileFetchedPromise = this.fetcher.fetch(imageIdObject);
+      const fileFetchedPromise = this.wholeFileFetcher.fetch(imageIdObject);
 
       fileFetchedPromise.
         // decompress (if compressed) the file raw data
@@ -88,7 +102,7 @@ export default class VolumeAcquisition {
         return;
       }
 
-      const fetcher = isRangeRead ? this.headerOnlyFetcher : this.fetcher;
+      const fetcher = isRangeRead ? this.headerOnlyFetcher : this.wholeFileFetcher;
       const fileFetchedPromise = fetcher.fetch(imageIdObject);
 
       fileFetchedPromise.

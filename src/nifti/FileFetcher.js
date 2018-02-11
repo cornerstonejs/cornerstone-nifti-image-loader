@@ -1,8 +1,5 @@
 import cornerstoneEvents from './cornerstoneEvents.js';
 
-const getFetchPromiseFromCache = Symbol('getFetchPromiseFromCache');
-const addFetchPromiseToCache = Symbol('addFetchPromiseToCache');
-
 /**
  * Fetches files and notifies Cornerstone of the relevant events.
  */
@@ -10,18 +7,20 @@ export default class FileFetcher {
   constructor ({
     method = 'GET',
     responseType = 'arraybuffer',
-    beforeSend = noop
+    beforeSend = noop,
+    onHeadersReceived = noop
   } = {}) {
     this.options = {
       method,
       responseType,
-      beforeSend
+      beforeSend,
+      onHeadersReceived
     };
     this.promisesCache = {};
   }
 
   fetch (imageIdObject) {
-    const cachedFileFetchPromise = this[getFetchPromiseFromCache](imageIdObject);
+    const cachedFileFetchPromise = this.getFetchPromiseFromCache(imageIdObject);
     let fileFetchPromise;
 
     if (cachedFileFetchPromise) {
@@ -51,21 +50,21 @@ export default class FileFetcher {
         request.send();
       });
 
-      this[addFetchPromiseToCache](fileFetchPromise, imageIdObject);
+      this.addFetchPromiseToCache(fileFetchPromise, imageIdObject);
     }
 
     return fileFetchPromise;
   }
 
-  [getFetchPromiseFromCache] (imageIdObject) {
+  getFetchPromiseFromCache (imageIdObject) {
     const promisesForThisFile = this.promisesCache[imageIdObject.filePath];
 
     return Array.isArray(promisesForThisFile) && promisesForThisFile.find((entry) => entry.fetcher === this);
   }
 
-  [addFetchPromiseToCache] (promise, imageIdObject) {
+  addFetchPromiseToCache (promise, imageIdObject) {
     this.promisesCache[imageIdObject.filePath] = this.promisesCache[imageIdObject.filePath] || [];
-    this.promisesCache[imageIdObject.filePath].push(
+    this.promisesCache[imageIdObject.filePath].unshift(
       new FetchPromiseCacheEntry(this, imageIdObject, promise)
     );
   }
@@ -110,13 +109,22 @@ function progress (url, imageId, options, params) {
 
 // builds a function that is going to be called when the request changes state
 function readyStateChange (options, params) {
+  const XHR_HEADERS_RECEIVED = 2;
+  const XHR_DONE = 4;
+
   return function (e) {
     callOptionalEventHook(options.onreadystatechange, e, params);
     if (options.onreadystatechange) {
       return;
     }
 
-    if (this.readyState === 4) {
+    if (this.readyState === XHR_HEADERS_RECEIVED) {
+      if (options.onHeadersReceived) {
+        options.onHeadersReceived(this, options, params);
+      }
+    }
+
+    if (this.readyState === XHR_DONE) {
       if ([200, 206].includes(this.status)) {
         params.deferred.resolve(this.response);
       } else {
