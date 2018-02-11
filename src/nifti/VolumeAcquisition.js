@@ -5,10 +5,10 @@ import decompressNiftiData from './decompressNiftiData.js';
 import { parseNiftiHeader, parseNiftiFile } from './parseNiftiFile.js';
 import convertFloatDataToInteger from './convertFloatDataToInteger.js';
 import ImageId from './ImageId.js';
+import minMaxNDarray from '../shared/minMaxNDarray.js';
 
 /* eslint import/extensions: off */
 import ndarray from 'ndarray';
-import ops from 'ndarray-ops';
 
 // private methods symbols
 const decompress = Symbol('decompress');
@@ -145,8 +145,10 @@ export default class VolumeAcquisition {
     const imageDataNDarray = ndarray(imageData, dimensions, strides);
 
     // finds the smallest and largest voxel value
-    metaData.minPixelValue = ops.inf(imageDataNDarray);
-    metaData.maxPixelValue = ops.sup(imageDataNDarray);
+    const minMax = minMaxNDarray(imageDataNDarray);
+
+    metaData.minPixelValue = minMax.min;
+    metaData.maxPixelValue = minMax.max;
 
     return {
       metaData,

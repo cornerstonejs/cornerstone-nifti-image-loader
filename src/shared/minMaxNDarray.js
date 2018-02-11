@@ -5,8 +5,8 @@
  */
 
 /**
- * getMinMax - Calculates the minimum and maximum value in an array. This is
- * necessary to provide cornerstone the min and max values of the array of
+ * minMaxNDarray - Calculates the minimum and maximum value in an ndarray. This
+ * is necessary to provide cornerstone the min and max values of the array of
  * values consisting of the image we're passing to it.
  *
  * Such information is typically found in DICOM files, but we prefer not to
@@ -21,22 +21,24 @@
  *
  * @return {MinMax} An object containing minimum
  */
-function getMinMax (values) {
+function minMaxNDarray (ndarray) {
   // performance note: a for with vanilla ifs is the most performant way to
   // find min and max values from an array
   // source: https://jsperf.com/determining-min-and-max-value-from-array/1
-  const numberOfValues = values.length;
+  let minimum = ndarray.get(0, 0, 0);
+  let maximum = minimum;
 
-  let minimum = values[0];
-  let maximum = values[0];
+  for (let i = 0; i < ndarray.shape[0]; i++) {
+    for (let j = 0; j < ndarray.shape[1]; j++) {
+      for (let k = 0; k < ndarray.shape[2]; k++) {
+        const currentValue = ndarray.get(i, j, k);
 
-  for (let i = 1; i < numberOfValues; i++) {
-    const currentValue = values[i];
-
-    if (currentValue < minimum) {
-      minimum = currentValue;
-    } else if (currentValue > maximum) {
-      maximum = currentValue;
+        if (currentValue < minimum) {
+          minimum = currentValue;
+        } else if (currentValue > maximum) {
+          maximum = currentValue;
+        }
+      }
     }
   }
 
@@ -46,4 +48,4 @@ function getMinMax (values) {
   };
 }
 
-export default getMinMax;
+export default minMaxNDarray;

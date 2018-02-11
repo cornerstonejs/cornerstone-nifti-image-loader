@@ -1,20 +1,9 @@
 /* eslint import/extensions:0 */
 import ndarray from 'ndarray';
-import cwise from 'cwise';
 
 function linearTransformation (value, slope, intercept) {
   return (value - intercept) / slope;
 }
-
-// a function that does a linear transformation, rounded down (.floor) on
-// an ndarray, given a destination array, an origin array, an intercept value
-// and a slope
-const linearTransformationCwise = cwise({
-  args: ['array', 'array', 'scalar', 'scalar'],
-  body: (valueDest, valueOrig, intercept, slope) => {
-    valueDest = Math.floor((valueOrig - intercept) / slope);
-  }
-});
 
 export default function convertFloatDataToInteger (imageDataView, metaData) {
   const intRange = Math.pow(2, 16); // 65536
@@ -33,7 +22,16 @@ export default function convertFloatDataToInteger (imageDataView, metaData) {
   );
 
   // converts from float to int, scaling each with a linear linearTransformation
-  linearTransformationCwise(convertedImageDataView, imageDataView, intercept, slope);
+  for (let i = 0; i < imageDataView.shape[0]; i++) {
+    for (let j = 0; j < imageDataView.shape[1]; j++) {
+      for (let k = 0; k < imageDataView.shape[2]; k++) {
+        let value = imageDataView.get(i, j, k);
+
+        value = linearTransformation(value, slope, intercept);
+        convertedImageDataView.set(i, j, k, Math.floor(value));
+      }
+    }
+  }
 
   return {
     convertedImageDataView,

@@ -74,9 +74,7 @@
     "webpack": "^3.8.1"
   },
   "dependencies": {
-    "cwise": "^1.0.10",
     "ndarray": "^1.0.18",
-    "ndarray-ops": "^1.2.2",
     "nifti-reader-js": "^0.5.4"
   }
 }
