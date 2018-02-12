@@ -24,7 +24,6 @@ export function metaDataProvider (type, imageId) {
   switch (type) {
   case 'imagePlane':
   case 'imagePlaneModule': {
-    const imagePositionPatient = getPatientPosition(metaData);
     const frameOfReferenceUID = imageIdObject.filePath;
 
     return {
@@ -34,7 +33,7 @@ export function metaDataProvider (type, imageId) {
       imageOrientationPatient: [...metaData.columnCosines, ...metaData.rowCosines],
       columnCosines: metaData.columnCosines,
       rowCosines: metaData.rowCosines,
-      imagePositionPatient,
+      imagePositionPatient: metaData.patientPosition,
       // assuming slices contain no gaps between them (contiguous voxels),
       // as the nifti file does not hold thickness/gap separately
       sliceThickness: metaData.slicePixelSpacing,
@@ -90,13 +89,6 @@ export function metaDataProvider (type, imageId) {
   default:
     return;
   }
-}
-
-// TODO should reflect the current slice? are the values correct?
-function getPatientPosition (metaData) {
-  const matrix = metaData.header.affine;
-
-  return [-matrix[0][3], -matrix[1][3], matrix[2][3]];
 }
 
 function getSamplesPerPixel (metaData) {

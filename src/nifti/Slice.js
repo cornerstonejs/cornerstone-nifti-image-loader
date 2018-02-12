@@ -1,6 +1,7 @@
 import { external } from '../externalModules.js';
 import flattenNDarray from '../shared/flattenNDarray.js';
 import arrayRotateRight from '../shared/arrayRotateRight.js';
+import Vector3 from '../shared/Vector3.js';
 
 /* eslint class-methods-use-this: off */
 // private methods
@@ -8,11 +9,13 @@ const determineMetaData = Symbol('determineMetaData');
 const determinePixelData = Symbol('determinePixelData');
 const getDimensionsIndices = Symbol('getDimensionsIndices');
 const getPatientOrientation = Symbol('getPatientOrientation');
+const getPatientPosition = Symbol('getPatientPosition');
 
 
 /**
- * An orthogonal slice of a volume. The main property is .cornersoneImage,
- * which exposes a Cornerstone Image Object.
+ * A slice of a volume that is orthogonal to its i,j,k values (not to x,y,z).
+ * The main property is .cornersoneImage, which exposes a
+ * Cornerstone Image Object.
  */
 export default class Slice {
   constructor (volume, imageIdObject) {
@@ -39,6 +42,7 @@ export default class Slice {
     const columnPixelSpacing = volumeMetaData.pixelSpacing[columnsIndex];
     const slicePixelSpacing = volumeMetaData.pixelSpacing[framesIndex];
     const { rowCosines, columnCosines, rowFlip, columnFlip } = this[getPatientOrientation](volumeMetaData.orientationMatrix, columnsIndex, rowsIndex);
+    const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex, slicePixelSpacing);
 
     Object.assign(this.metaData, {
       columns,
@@ -55,7 +59,8 @@ export default class Slice {
       columnCosines: rowCosines,
       rowCosines: columnCosines,
       rowFlip,
-      columnFlip
+      columnFlip,
+      patientPosition
     });
   }
 
@@ -118,7 +123,7 @@ export default class Slice {
     // gets the signs of the rotation matrix for the dimension being shown horizontally
     // (columnSign) and the one shown vertically (rowSign)
     const columnSign = matrix[columnsIndex][columnsIndex] < 0 ? -1 : 1;
-    const rowSign = matrix[rowsIndex][rowsIndex] < 0 ? -1 : 1;
+    const rowSign = matrix[rowsIndex][rowsIndex] <= 0 ? -1 : 1;
 
     // determines if the horizontal (columnFlip) and vertical (rowFlip) pixel data
     // should be flipped
@@ -149,6 +154,19 @@ export default class Slice {
       rowFlip: rowFlip ? -1 : 1,
       columnFlip: columnFlip ? -1 : 1
     };
+  }
+
+  [getPatientPosition] (matrix, framesIndex, slicePixelSpacing) {
+    const firstVoxelPosition = new Vector3([matrix[0][3], matrix[1][3], matrix[2][3]]);
+    const vectorTowardsSlices = new Vector3([matrix[framesIndex][0], matrix[framesIndex][1], matrix[framesIndex][2]]);
+
+    // TODO convert to mm in case it is not in mm
+    const position = firstVoxelPosition.add(vectorTowardsSlices.normalized().multiply(this.index * slicePixelSpacing));
+
+    position.x *= -1;
+    position.y *= -1;
+
+    return position.asArray();
   }
 
   get cornerstoneImageObject () {
