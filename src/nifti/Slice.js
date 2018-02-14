@@ -70,8 +70,7 @@ export default class Slice {
     const slicePick = arrayRotateRight([this.index, null, null], this.metaData.framesIndex);
     const { columnFlip, rowFlip } = this.metaData;
     const imageDataView = this.volume.imageDataNDarray.pick(...slicePick).
-      step(columnFlip, rowFlip).
-      transpose(1, 0);
+      step(columnFlip, rowFlip);
 
     const isDataInFloat = this.volume.metaData.dataType.isDataInFloat;
     const TypeArrayConstructor = isDataInFloat ? Uint16Array : this.volume.metaData.dataType.TypedArrayConstructor;
