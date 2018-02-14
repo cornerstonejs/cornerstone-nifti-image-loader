@@ -1,0 +1,49 @@
+#more-info {
+  border-top: 1px solid silver;
+  border-bottom: 1px solid silver;
+  margin: 1rem 0;
+  transition: background-color 800ms ease-out;
+  padding: 0.5rem;
+  background-color: #eee;
+}
+
+#more-info.highlighted {
+  background-color: #e4f6ff;
+}
+
+.nifti-image-container {
+  position: relative;
+  width: 512px;
+  height: 512px;
+  border-style: solid;
+  border-color: red;
+  color: white;
+  margin: 10px;
+}
+
+#nifti-image {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#image-and-data-info {
+}
+
+#nifti-image-data {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-content: flex-start;
+}
+
+#main-header {
+  margin-top: 2rem;
+}
+
+.metadata {
+  margin-right: 1.5rem;
+}

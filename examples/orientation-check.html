@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="charset" content="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by cornerstone -->
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <link href="cornerstone.min.css" rel="stylesheet">
+  <link href="orientation-check.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header id="main-header">
+      <h1>NIFTI loading</h1>
+      <h2><small class="text-muted">Example of displaying a NIFTI image using Cornerstone</small></h2>
+      <p class="lead">
+        Enter a URL for a NIFTI file to view it using cornerstone.
+        <button id='toggle-more-info' class="btn btn-outline-info" type="button">
+            More info
+        </button>
+      </p>
+    </header>
+    <div id="more-info" class="collapse">
+      <p>
+        This example illustrates how to use the cornerstone-nifti-image-loader to get a NIFTI
+        file and display it in your web browser using cornerstone.
+      </p>
+      <p>
+        Use the hash fragment (<code>#</code>) to specify which frame (slice) to display
+        from an object (defaults to the first frame if not specified). Example:
+        <dl class="row">
+          <dt class="col-sm-3 col-md-5 text-right">URL: <code>brain.nii</code></dt>
+          <dd class="col-sm-9 col-md-7">Loads the first frame (slice) of the data</dd>
+          <dt class="col-sm-3 col-md-5 text-right">URL: <code>brain.nii#15</code></dt>
+          <dd class="col-sm-9 col-md-7">Loads the 15th frame (slice) of the data</dd>
+        </dl>
+      </p>
+      <strong>If you get an HTTP error and your URL is correct, it is probably because the server is not configured to
+        allow <a href="http://en.wikipedia.org/wiki/Cross-origin_resource_sharing">Cross Origin Requests</a>.
+        Most browsers will allow you to enable cross domain requests via settings or command line switches,
+        you can start chrome with the command line switch <code>--disable-web-security</code> to allow cross origin requests.
+        See the  <a href="http://enable-cors.org/">Enable CORS site</a> for information about CORS.
+      </strong>
+      <br>
+      <br>
+      <p>
+        Looking for a CORS proxy?  Try <a href="https://www.npmjs.com/package/corsproxy">CORSProxy</a>
+      </p>
+      <strong>Use of this example require IE10+ or any other modern browser.</strong>
+    </div>
+    <div id="load-progress">Image Load Progress:</div>
+
+    <div class="row">
+      <div class="col">
+        <form id="form">
+          <div class="form-group form-row">
+            <label class="col-form-label col-sm-1" for="nifti-URL">URL</label>
+            <div class="col-sm-7">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">nifti:</div>
+                </div>
+                <input class="form-control" type="text" id="nifti-URL" placeholder="Enter URL to NIFTI file or pick from list" list="sample-nifti-files">
+                <datalist id="sample-nifti-files">
+                  <option value="data/avg152T1_LR_nifti.nii">data/avg152T1_LR_nifti.nii (uncompressed, 903 KB)</option>
+                  <option value="data/sample_image.nii.gz">data/sample_image.nii.gz (compressed, 1.5 MB)</option>
+                  <option value="data/fMRI_Ret_bars.nii.gz">data/fMRI_Ret_bars.nii.gz (compressed, 3.0 MB)</option>
+                  <option value="data/dti_FA.nii.gz">data/dti_FA.nii.gz (compressed, 395.6 KB)</option>
+                  <option value="data/dti_V1.nii.gz">data/dti_V1.nii.gz (compressed, 1.2 MB)</option>
+                  <option value="data/mni152_2009_256.nii.gz">data/mni152_2009_256.nii.gz (compressed, 4.5 MB)</option>
+                </datalist>
+              </div>
+            </div>
+            <div class="col-sm-3">
+              <button class="btn btn-primary" type="button" id="download-and-view">Download and View</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- <input type="checkbox" id="toggleModalityLUT">Apply Modality LUT</input>
+    <input type="checkbox" id="toggleVOILUT">Apply VOI LUT</input> -->
+
+    <section id="image-and-data-info">
+      <div class="nifti-image-container"
+         oncontextmenu="return false"
+         class='disable-selection noIbar'
+         unselectable='on'
+         onselectstart='return false;'
+         onmousedown='return false;'>
+        <div id="nifti-image"></div>
+      </div>
+      <div class="nifti-image-container"
+         oncontextmenu="return false"
+         class='disable-selection noIbar'
+         unselectable='on'
+         onselectstart='return false;'
+         onmousedown='return false;'>
+        <div id="nifti-image-x"></div>
+      </div>
+      <div class="nifti-image-container"
+         oncontextmenu="return false"
+         class='disable-selection noIbar'
+         unselectable='on'
+         onselectstart='return false;'
+         onmousedown='return false;'>
+        <div id="nifti-image-y"></div>
+      </div>
+      <div id="nifti-image-data">
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Samples per Pixel:</span>
+          <span class="badge badge-pill badge-primary"  id="samplesPerPixel"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Photometric Interpretation:</span>
+          <span class="badge badge-pill badge-primary"  id="photometricInterpretation"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Number of Frames:</span>
+          <span class="badge badge-pill badge-primary"  id="numberOfFrames"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Planar Configuration:</span>
+          <span class="badge badge-pill badge-primary"  id="planarConfiguration"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Rows:</span>
+          <span class="badge badge-pill badge-primary"  id="rows"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Columns:</span>
+          <span class="badge badge-pill badge-primary"  id="columns"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Pixel Aspect Ratio:</span>
+          <span class="badge badge-pill badge-primary"  id="pixelAspectRatio"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Bits Allocated:</span>
+          <span class="badge badge-pill badge-primary"  id="bitsAllocated"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Bits Stored:</span>
+          <span class="badge badge-pill badge-primary"  id="bitsStored"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">High Bit:</span>
+          <span class="badge badge-pill badge-primary"  id="highBit"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Pixel Representation:</span>
+          <span class="badge badge-pill badge-primary"  id="pixelRepresentation"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">WindowCenter:</span>
+          <span class="badge badge-pill badge-primary"  id="windowCenter"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">WindowWidth:</span>
+          <span class="badge badge-pill badge-primary"  id="windowWidth"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">RescaleIntercept:</span>
+          <span class="badge badge-pill badge-primary"  id="rescaleIntercept"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">RescaleSlope:</span>
+          <span class="badge badge-pill badge-primary"  id="rescaleSlope"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Min Stored Pixel Value:</span>
+          <span class="badge badge-pill badge-primary"  id="minStoredPixelValue"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Max Stored Pixel Value:</span>
+          <span class="badge badge-pill badge-primary"  id="maxStoredPixelValue"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Total Time:</span>
+          <span class="badge badge-pill badge-primary"  id="totalTime"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+
+<!-- include the cornerstone library -->
+<script src="cornerstone.js"></script>
+<script src="cornerstoneMath.js"></script>
+<script src="cornerstoneTools.js"></script>
+
+<!-- include the cornerstoneNIFTIImageLoader library -->
+<script src="../../dist/cornerstoneNIFTIImageLoader.js"></script>
+
+<script>
+  cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
+  const ImageId = cornerstoneNIFTIImageLoader.nifti.ImageId;
+  let loaded = false;
+
+  var synchronizer = new cornerstoneTools.Synchronizer("cornerstonenewimage", cornerstoneTools.updateImageSynchronizer);
+
+  function loadAndViewImage(element, imageId) {
+    const imageIdObject = ImageId.fromURL(imageId);
+
+    try {
+      const start = new Date().getTime();
+      cornerstone.loadAndCacheImage(imageIdObject.url).then(function(image) {
+        console.log(image);
+        const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageIdObject.url).numberOfFrames;
+        const stack = {
+          currentImageIdIndex: imageIdObject.slice.index,
+          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti:${imageIdObject.filePath}#${imageIdObject.slice.dimension}-${i}`)
+        };
+
+        const viewport = cornerstone.getDefaultViewportForImage(element, image);
+        cornerstone.displayImage(element, image, viewport);
+        cornerstone.resize(element, true);
+
+        cornerstoneTools.addStackStateManager(element, ['stack']);
+        cornerstoneTools.addToolState(element, 'stack', stack);
+        cornerstoneTools.mouseInput.enable(element);
+        cornerstoneTools.mouseWheelInput.enable(element);
+        //cornerstoneTools.wwwc.activate(element, 1);
+        cornerstoneTools.pan.activate(element, 2);
+        cornerstoneTools.zoom.activate(element, 4);
+        cornerstoneTools.stackScrollWheel.activate(element);
+        cornerstoneTools.orientationMarkers.enable(element);
+
+        synchronizer.add(element);
+        cornerstoneTools.stackPrefetch.enable(element);
+        cornerstoneTools.referenceLines.tool.enable(element, synchronizer);
+        cornerstoneTools.crosshairs.enable(element, 1, synchronizer);
+
+        function getPixelRepresentation(value) {
+          return value === '0000H' ? '(unsigned)' : '(signed)';
+        }
+
+        function getPlanarConfiguration(value) {
+            return (typeof value === 'undefined' ? 'unspecified' : (value === 0 ? '(pixel)' : '(plane)'));
+        }
+
+        const metaData = (type) => cornerstone.metaData.get(type, imageIdObject.url);
+
+        document.getElementById('samplesPerPixel').textContent = metaData('imagePixelModule').samplesPerPixel;
+        document.getElementById('photometricInterpretation').textContent = metaData('imagePixelModule').photometricInterpretation;
+        document.getElementById('numberOfFrames').textContent = metaData('multiFrameModule').numberOfFrames;
+        document.getElementById('planarConfiguration').textContent = getPlanarConfiguration(metaData('imagePixelModule').planarConfiguration);
+        document.getElementById('rows').textContent = metaData('imagePixelModule').rows;
+        document.getElementById('columns').textContent = metaData('imagePixelModule').columns;
+        document.getElementById('pixelAspectRatio').textContent = metaData('imagePixelModule').pixelAspectRatio;
+        document.getElementById('bitsAllocated').textContent = metaData('imagePixelModule').bitsAllocated;
+        document.getElementById('bitsStored').textContent = metaData('imagePixelModule').bitsStored;
+        document.getElementById('highBit').textContent = metaData('imagePixelModule').highBit;
+        document.getElementById('pixelRepresentation').textContent = getPixelRepresentation(metaData('imagePixelModule').pixelRepresentation);
+        document.getElementById('windowCenter').textContent = metaData('voiLutModule').windowCenter;
+        document.getElementById('windowWidth').textContent = metaData('voiLutModule').windowWidth;
+        document.getElementById('rescaleIntercept').textContent = metaData('modalityLutModule').rescaleIntercept;
+        document.getElementById('rescaleSlope').textContent = metaData('modalityLutModule').rescaleSlope;
+        document.getElementById('minStoredPixelValue').textContent = metaData('imagePixelModule').smallestPixelValue;
+        document.getElementById('maxStoredPixelValue').textContent = metaData('imagePixelModule').largestPixelValue;
+        const end = new Date().getTime();
+        const time = end - start;
+        document.getElementById('totalTime').textContent = `${time}ms`;
+
+      }, function(err) {
+        throw err;
+        alert(err);
+      });
+    } catch(err) {
+      throw err;
+      alert(err);
+    }
+  }
+
+  function downloadAndView(element, url) {
+    loadAndViewImage(element, `nifti:${url}`);
+  }
+
+  cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
+    const eventData = event.detail;
+    const loadProgress = document.getElementById('load-progress');
+    loadProgress.textContent = `Image Load Progress: ${eventData.percentComplete}%`;
+  });
+
+  const elementZ = document.getElementById('nifti-image');
+  cornerstone.enable(elementZ);
+
+  const elementX = document.getElementById('nifti-image-x');
+  cornerstone.enable(elementX);
+  
+  const elementY = document.getElementById('nifti-image-y');
+  cornerstone.enable(elementY);
+
+  downloadAndView(elementZ, 'data/avg152T1_LR_nifti.nii#z-0');
+  downloadAndView(elementX, 'data/avg152T1_LR_nifti.nii#x-0');
+  downloadAndView(elementY, 'data/avg152T1_LR_nifti.nii#y-0');
+
+  document.getElementById('download-and-view').addEventListener('click', function(e) {
+    downloadAndView();
+  });
+
+  const form = document.getElementById('form');
+  form.addEventListener('submit', function(e) {
+    downloadAndView();
+    e.preventDefault();
+  });
+
+  document.getElementById('toggle-more-info').addEventListener('click', function() {
+    const moreInfoEl = document.querySelector('#more-info');
+    let justAppeared = !moreInfoEl.classList.toggle('collapse');
+    if (justAppeared) {
+      moreInfoEl.classList.add('highlighted');
+      setTimeout(() => moreInfoEl.classList.remove('highlighted'), 100);
+    }
+  });
+</script>
+</html>
