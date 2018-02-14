@@ -1,7 +1,11 @@
 import { external } from '../externalModules.js';
 import flattenNDarray from '../shared/flattenNDarray.js';
 import arrayRotateRight from '../shared/arrayRotateRight.js';
-import Vector3 from '../shared/Vector3.js';
+// import Vector3 from '../shared/Vector3.js';
+import { multiplyMatrixAndPoint, transpose} from '../shared/matrixOperations.js';
+import * as cornerstoneMath from 'cornerstone-math';
+
+const Vector3 = cornerstoneMath.Vector3;
 
 /* eslint class-methods-use-this: off */
 // private methods
@@ -42,7 +46,8 @@ export default class Slice {
     const columnPixelSpacing = volumeMetaData.pixelSpacing[columnsIndex];
     const slicePixelSpacing = volumeMetaData.pixelSpacing[framesIndex];
     const { rowCosines, columnCosines, rowFlip, columnFlip } = this[getPatientOrientation](volumeMetaData.orientationMatrix, columnsIndex, rowsIndex);
-    const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex, slicePixelSpacing);
+    // const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex, columns, rows, columnCosines, rowCosines, columnPixelSpacing, rowPixelSpacing, slicePixelSpacing, rowFlip, columnFlip);
+    const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex, columns, rows, columnCosines, rowCosines, columnPixelSpacing, rowPixelSpacing, slicePixelSpacing, rowFlip, columnFlip);
 
     Object.assign(this.metaData, {
       columns,
@@ -56,8 +61,8 @@ export default class Slice {
       slicePixelSpacing,
       // when returning, we swap rows/columns because cornerstone is column-major
       // and nifti images are row-major
-      columnCosines: rowCosines,
-      rowCosines: columnCosines,
+      columnCosines,//: rowCosines,
+      rowCosines,//: columnCosines,
       rowFlip,
       columnFlip,
       patientPosition
@@ -65,12 +70,15 @@ export default class Slice {
   }
 
   [determinePixelData] () {
+    this.volume.imageDataNDarray.set(0, 0, 0, 255);
     // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
     // const dimensionIndex = 'xyz'.indexOf(slice.dimension);
     const slicePick = arrayRotateRight([this.index, null, null], this.metaData.framesIndex);
     const { columnFlip, rowFlip } = this.metaData;
     const imageDataView = this.volume.imageDataNDarray.pick(...slicePick).
       step(columnFlip, rowFlip);
+
+    imageDataView.set(0, 0, 128);
 
     const isDataInFloat = this.volume.metaData.dataType.isDataInFloat;
     const TypeArrayConstructor = isDataInFloat ? Uint16Array : this.volume.metaData.dataType.TypedArrayConstructor;
@@ -121,8 +129,8 @@ export default class Slice {
   [getPatientOrientation] (matrix, columnsIndex, rowsIndex) {
     // gets the signs of the rotation matrix for the dimension being shown horizontally
     // (columnSign) and the one shown vertically (rowSign)
-    const columnSign = matrix[columnsIndex][columnsIndex] < 0 ? -1 : 1;
-    const rowSign = matrix[rowsIndex][rowsIndex] <= 0 ? -1 : 1;
+    // const columnSign = matrix[columnsIndex][columnsIndex] < 0 ? -1 : 1;
+    // const rowSign = matrix[rowsIndex][rowsIndex] <= 0 ? -1 : 1;
 
     // determines if the horizontal (columnFlip) and vertical (rowFlip) pixel data
     // should be flipped
@@ -132,41 +140,124 @@ export default class Slice {
     //              want to display 'left' always on the left side of the image
     // vertical: if the cosine (sign) is '+', we need to flip it
     //   - rationale: DICOM's y axis grows to posterior, NIFTI's grows to anterior
-    const columnFlip = (columnsIndex === 0) ? (columnSign === -1) : (columnSign === 1);
-    const rowFlip = rowSign === 1;
+    // const columnFlip = (columnsIndex === 0) ? (columnSign === -1) : (columnSign === 1);
+    // const rowFlip = rowSign === 1;
 
     let columnCosines = [-matrix[0][columnsIndex], -matrix[1][columnsIndex], matrix[2][columnsIndex]];
     let rowCosines = [-matrix[0][rowsIndex], -matrix[1][rowsIndex], matrix[2][rowsIndex]];
 
     // if we flipped horizontally or vertically for display, we need to negate
     // the cosines
-    if (columnFlip) {
-      columnCosines = columnCosines.map((cosine) => -cosine);
-    }
-    if (rowFlip) {
-      rowCosines = rowCosines.map((cosine) => -cosine);
-    }
+    // if (columnFlip) {
+    //   columnCosines = columnCosines.map((cosine) => -cosine);
+    // }
+    // if (rowFlip) {
+    //   rowCosines = rowCosines.map((cosine) => -cosine);
+    // }
+
+    // console.log('rowFlip', rowFlip);
+    // console.log('columnFlip', columnFlip);
 
     return {
-      rowCosines,
-      columnCosines,
-      rowFlip: rowFlip ? -1 : 1,
-      columnFlip: columnFlip ? -1 : 1
+      rowCosines: new Vector3(...rowCosines).normalize().toArray(),
+      columnCosines: new Vector3(...columnCosines).normalize().toArray(),
+      // rowFlip: rowFlip ? -1 : 1,
+      // columnFlip: columnFlip ? -1 : 1
     };
   }
 
-  [getPatientPosition] (matrix, framesIndex, slicePixelSpacing) {
-    const firstVoxelPosition = new Vector3([matrix[0][3], matrix[1][3], matrix[2][3]]);
-    const vectorTowardsSlices = new Vector3([matrix[framesIndex][0], matrix[framesIndex][1], matrix[framesIndex][2]]);
+  [getPatientPosition] (matrix, dimensionIndex, columns, rows) {
+    const ijkPoint = arrayRotateRight([this.index, 0, 0], dimensionIndex);
 
-    // TODO convert to mm in case it is not in mm
-    const position = firstVoxelPosition.add(vectorTowardsSlices.normalized().multiply(this.index * slicePixelSpacing));
+    // duplicates the matrix
+    matrix = JSON.parse(JSON.stringify(matrix));
 
-    position.x *= -1;
-    position.y *= -1;
+    switch (this.dimension) {
+    // case 'x':
+    //   matrix[0][3] -= (matrix[2][2] * rows);
+    //   matrix[1][3] += (matrix[1][1] * columns);
+    //   break;
+    case 'y':
+      matrix[0][3] += (matrix[0][0] * columns);
+      matrix[1][3] += (matrix[2][2] * rows);
+      break;
+    case 'z':
+    case 'x':
+      matrix[0][3] += (matrix[0][0] * columns);
+      matrix[1][3] += (matrix[1][1] * rows);
+      break;
+    }
 
-    return position.asArray();
+    // matrix[0][3] *= -1;
+    // matrix[1][3] *= -1;
+    // matrix[0][0] *= -1;
+    // matrix[0][1] *= -1;
+    // matrix[0][2] *= -1;
+    // matrix[0][3] *= -1;
+    // matrix[1][0] *= -1;
+    // matrix[1][1] *= -1;
+    // matrix[1][2] *= -1;
+    // matrix[1][3] *= -1;
+    matrix = transpose(matrix);
+
+    const position = multiplyMatrixAndPoint([].concat.apply([], matrix), [...ijkPoint, 1]);
+
+    // if (columnFlip === -1) {
+    //   position[1] *= -1;
+    // }
+    //
+    // if (rowFlip === -1) {
+    //   position[0] *= -1;
+    // }
+
+    console.log('position', position);
+
+    return position.slice(0, 3);
   }
+  //
+  // [getPatientPosition] (matrix, dimensionIndex, columns, rows, columnCosines, rowCosines, columnPixelSpacing, rowPixelSpacing, slicePixelSpacing, rowFlip, columnFlip) {
+  //   const volumeOriginVector = [(matrix[0][0] * columns) + matrix[0][3], (matrix[1][1] * rows) + matrix[1][3], matrix[2][3]];
+  //   const topLeftVoxelPosition = new Vector3(...volumeOriginVector);
+  //   // const topLeftVoxelPosition = bottomRightVoxelPosition.clone();
+  //
+  //
+  //   // const xPositionShift = new Vector3(...columnCosines).multiplyScalar(columnPixelSpacing * columns);
+  //   // const yPositionShift = new Vector3(...rowCosines).multiplyScalar(rowPixelSpacing * rows);
+  //   //
+  //   //
+  //   // topLeftVoxelPosition.sub(xPositionShift);
+  //   // topLeftVoxelPosition.sub(yPositionShift);
+  //
+  //   const vectorTowardsSlices = new Vector3(...rowCosines).cross(new Vector3(...columnCosines));
+  //
+  //   vectorTowardsSlices.normalize();
+  //
+  //
+  //   // TODO convert to mm in case it is not in mm
+  //   const position = topLeftVoxelPosition.add(vectorTowardsSlices.multiplyScalar(this.index * slicePixelSpacing));
+  //
+  //   console.log('position', position);
+  //
+  //   return position.toArray();
+  // }
+  // [getPatientPosition] (matrix, dimensionIndex, rowCosines, columnCosines, slicePixelSpacing) {
+  //   const translationVector = [-matrix[0][3], -matrix[1][3], matrix[2][3]];
+  //   const bottomLeftVoxelPosition = new Vector3(...translationVector);
+  //   const vectorTowardsSlices = new Vector3(...rowCosines).cross(new Vector3(...columnCosines));
+  //
+  //   vectorTowardsSlices.normalize();
+  //
+  //   if (dimensionIndex === 0 || dimensionIndex === 1) {
+  //     vectorTowardsSlices.negate();
+  //   }
+  //
+  //   // TODO convert to mm in case it is not in mm
+  //   const position = bottomLeftVoxelPosition.add(vectorTowardsSlices.multiplyScalar(this.index * slicePixelSpacing));
+  //
+  //   console.log('position', position);
+  //
+  //   return position.toArray();
+  // }
 
   get cornerstoneImageObject () {
     const volumeMetaData = this.volume.metaData;

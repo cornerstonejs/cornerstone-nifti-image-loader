@@ -74,6 +74,7 @@
     "webpack": "^3.8.1"
   },
   "dependencies": {
+    "cornerstone-math": "^0.1.6",
     "ndarray": "^1.0.18",
     "nifti-reader-js": "^0.5.4"
   }
