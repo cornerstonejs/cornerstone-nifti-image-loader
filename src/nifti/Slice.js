@@ -61,8 +61,8 @@ export default class Slice {
       slicePixelSpacing,
       // when returning, we swap rows/columns because cornerstone is column-major
       // and nifti images are row-major
-      columnCosines,//: rowCosines,
-      rowCosines,//: columnCosines,
+      columnCosines: rowCosines,
+      rowCosines: columnCosines,
       rowFlip,
       columnFlip,
       patientPosition
@@ -173,42 +173,31 @@ export default class Slice {
     matrix = JSON.parse(JSON.stringify(matrix));
 
     switch (this.dimension) {
-    // case 'x':
-    //   matrix[0][3] -= (matrix[2][2] * rows);
-    //   matrix[1][3] += (matrix[1][1] * columns);
-    //   break;
     case 'y':
-      matrix[0][3] += (matrix[0][0] * columns);
-      matrix[1][3] += (matrix[2][2] * rows);
-      break;
-    case 'z':
+      // falls through
     case 'x':
-      matrix[0][3] += (matrix[0][0] * columns);
-      matrix[1][3] += (matrix[1][1] * rows);
+      matrix[0][0] *= -1;
+      matrix[0][1] *= -1;
+      matrix[0][2] *= -1;
+      matrix[0][3] *= +1;
+      if (this.dimension === 'x') {
+        // matrix[2][3] *= -1;
+      }
+      // falls through
+    case 'z':
+      matrix[1][0] *= -1;
+      matrix[1][1] *= -1;
+      matrix[1][2] *= -1;
+      matrix[1][3] *= -1;
+      if (this.dimension === 'z') {
+        // matrix[1][3] *= -1;
+      }
       break;
-    }
 
-    // matrix[0][3] *= -1;
-    // matrix[1][3] *= -1;
-    // matrix[0][0] *= -1;
-    // matrix[0][1] *= -1;
-    // matrix[0][2] *= -1;
-    // matrix[0][3] *= -1;
-    // matrix[1][0] *= -1;
-    // matrix[1][1] *= -1;
-    // matrix[1][2] *= -1;
-    // matrix[1][3] *= -1;
+    }
     matrix = transpose(matrix);
 
     const position = multiplyMatrixAndPoint([].concat.apply([], matrix), [...ijkPoint, 1]);
-
-    // if (columnFlip === -1) {
-    //   position[1] *= -1;
-    // }
-    //
-    // if (rowFlip === -1) {
-    //   position[0] *= -1;
-    // }
 
     console.log('position', position);
 
