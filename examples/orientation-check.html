@@ -274,8 +274,13 @@
     }
   }
 
-  function downloadAndView(element, url) {
-    loadAndViewImage(element, `nifti:${url}`);
+  function downloadAndView(elements) {
+    let url = document.getElementById('nifti-URL').value;
+    let imageIdObject = ImageId.fromURL(`nifti:${url}`);
+
+    loadAndViewImage(elements[0], `nifti:${imageIdObject.filePath}#z`);
+    loadAndViewImage(elements[1], `nifti:${imageIdObject.filePath}#x`);
+    loadAndViewImage(elements[2], `nifti:${imageIdObject.filePath}#y`);
   }
 
   cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
@@ -293,12 +298,8 @@
   const elementY = document.getElementById('nifti-image-y');
   cornerstone.enable(elementY);
 
-  downloadAndView(elementZ, 'data/avg152T1_LR_nifti.nii#z-0');
-  downloadAndView(elementX, 'data/avg152T1_LR_nifti.nii#x-0');
-  downloadAndView(elementY, 'data/avg152T1_LR_nifti.nii#y-0');
-
   document.getElementById('download-and-view').addEventListener('click', function(e) {
-    downloadAndView();
+    downloadAndView([elementZ, elementX, elementY]);
   });
 
   const form = document.getElementById('form');
