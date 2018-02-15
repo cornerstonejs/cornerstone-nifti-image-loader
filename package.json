@@ -20,6 +20,7 @@
     "url": "https://github.com/flywheel-io/cornerstone-nifti-image-loader.git"
   },
   "scripts": {
+    "dev": "opn http://localhost:8008/examples/orientation-check.html && http-server -p 8008 -c-1",
     "eslint": "eslint -c .eslintrc.js src",
     "eslint-quiet": "eslint -c .eslintrc.js --quiet src",
     "eslint-fix": "eslint -c .eslintrc.js --fix src",
@@ -55,6 +56,7 @@
     "eslint": "^4.12.0",
     "eslint-loader": "^1.9.0",
     "eslint-plugin-import": "^2.8.0",
+    "http-server": "^0.11.1",
     "istanbul-instrumenter-loader": "^3.0.0",
     "jsdoc": "^3.5.5",
     "karma": "^1.7.1",
@@ -71,7 +73,8 @@
     "shx": "^0.2.2",
     "sinon": "^4.2.1",
     "uglify-js": "^3.2.0",
-    "webpack": "^3.8.1"
+    "webpack": "^3.8.1",
+    "webpack-livereload-plugin": "^1.0.0"
   },
   "dependencies": {
     "cornerstone-math": "^0.1.6",
