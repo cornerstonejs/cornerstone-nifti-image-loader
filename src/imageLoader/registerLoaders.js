@@ -1,7 +1,5 @@
 import nifti from '../nifti/index.js';
 
-console.log(nifti);
-
 /**
  * Register the WADO-URI and WADO-RS image loaders and metaData providers
  * with an instance of Cornerstone Core.

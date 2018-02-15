@@ -155,9 +155,6 @@ export default class Slice {
     //   rowCosines = rowCosines.map((cosine) => -cosine);
     // }
 
-    // console.log('rowFlip', rowFlip);
-    // console.log('columnFlip', columnFlip);
-
     return {
       rowCosines: new Vector3(...rowCosines).normalize().toArray(),
       columnCosines: new Vector3(...columnCosines).normalize().toArray(),
@@ -187,8 +184,6 @@ export default class Slice {
 
     const position = multiplyMatrixAndPoint([].concat.apply([], matrix), [...ijkPoint, 1]);
 
-    console.log('position', position);
-
     return position.slice(0, 3);
   }
   //
@@ -213,7 +208,6 @@ export default class Slice {
   //   // TODO convert to mm in case it is not in mm
   //   const position = topLeftVoxelPosition.add(vectorTowardsSlices.multiplyScalar(this.index * slicePixelSpacing));
   //
-  //   console.log('position', position);
   //
   //   return position.toArray();
   // }
@@ -231,7 +225,6 @@ export default class Slice {
   //   // TODO convert to mm in case it is not in mm
   //   const position = bottomLeftVoxelPosition.add(vectorTowardsSlices.multiplyScalar(this.index * slicePixelSpacing));
   //
-  //   console.log('position', position);
   //
   //   return position.toArray();
   // }

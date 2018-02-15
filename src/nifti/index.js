@@ -15,7 +15,6 @@ const nifti = {
     let promise = volumeAcquisition.acquire(imageIdObject).
       then((volume) => volume.slice(imageIdObject)).
       then((slice) => {
-        console.log(slice.compoundMetaData);
         metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
         cornerstoneEvents.imageLoadEnd(imageIdObject);
 
