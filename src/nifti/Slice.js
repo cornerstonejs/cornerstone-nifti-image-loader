@@ -172,29 +172,17 @@ export default class Slice {
     // duplicates the matrix
     matrix = JSON.parse(JSON.stringify(matrix));
 
-    switch (this.dimension) {
-    case 'y':
-      // falls through
-    case 'x':
-      matrix[0][0] *= -1;
-      matrix[0][1] *= -1;
-      matrix[0][2] *= -1;
-      matrix[0][3] *= +1;
-      if (this.dimension === 'x') {
-        // matrix[2][3] *= -1;
-      }
-      // falls through
-    case 'z':
-      matrix[1][0] *= -1;
-      matrix[1][1] *= -1;
-      matrix[1][2] *= -1;
-      matrix[1][3] *= -1;
-      if (this.dimension === 'z') {
-        // matrix[1][3] *= -1;
-      }
-      break;
 
-    }
+    matrix[0][0] *= -1;
+    matrix[0][1] *= -1;
+    matrix[0][2] *= -1;
+    matrix[0][3] *= -1;
+
+    matrix[1][0] *= -1;
+    matrix[1][1] *= -1;
+    matrix[1][2] *= -1;
+    matrix[1][3] *= -1;
+
     matrix = transpose(matrix);
 
     const position = multiplyMatrixAndPoint([].concat.apply([], matrix), [...ijkPoint, 1]);
