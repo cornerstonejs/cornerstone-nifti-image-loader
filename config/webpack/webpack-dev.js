@@ -5,7 +5,8 @@ const LiveReloadPlugin = require('webpack-livereload-plugin');
 const devConfig = {
   plugins: [
     new LiveReloadPlugin({
-      appendScriptTag: true
+      appendScriptTag: true,
+      port: 45001
     })
   ]
 };
