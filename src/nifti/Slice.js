@@ -59,10 +59,8 @@ export default class Slice {
       columnPixelSpacing,
       rowPixelSpacing,
       slicePixelSpacing,
-      // when returning, we swap rows/columns because cornerstone is column-major
-      // and nifti images are row-major
-      columnCosines: rowCosines,
-      rowCosines: columnCosines,
+      columnCosines,
+      rowCosines,
       rowFlip,
       columnFlip,
       patientPosition
@@ -144,8 +142,8 @@ export default class Slice {
     // const columnFlip = (columnsIndex === 0) ? (columnSign === -1) : (columnSign === 1);
     // const rowFlip = rowSign === 1;
 
-    let columnCosines = [-matrix[0][columnsIndex], -matrix[1][columnsIndex], matrix[2][columnsIndex]];
-    let rowCosines = [-matrix[0][rowsIndex], -matrix[1][rowsIndex], matrix[2][rowsIndex]];
+    let rowCosines = [-matrix[0][columnsIndex], -matrix[1][columnsIndex], matrix[2][columnsIndex]];
+    let columnCosines = [-matrix[0][rowsIndex], -matrix[1][rowsIndex], matrix[2][rowsIndex]];
 
     // if we flipped horizontally or vertically for display, we need to negate
     // the cosines

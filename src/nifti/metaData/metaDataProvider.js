@@ -30,7 +30,7 @@ export function metaDataProvider (type, imageId) {
       frameOfReferenceUID,
       columns: metaData.columns,
       rows: metaData.rows,
-      imageOrientationPatient: [...metaData.columnCosines, ...metaData.rowCosines],
+      imageOrientationPatient: [...metaData.rowCosines, ...metaData.columnCosines],
       columnCosines: metaData.columnCosines,
       rowCosines: metaData.rowCosines,
       imagePositionPatient: metaData.patientPosition,
