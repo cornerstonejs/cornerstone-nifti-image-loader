@@ -283,5 +283,30 @@
       setTimeout(() => moreInfoEl.classList.remove('highlighted'), 100);
     }
   });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // check if there is a query parameter pointing to a file to be preloaded
+    const fileToPreload = (getParameterByName('file') || '').trim();
+
+    if (fileToPreload !== '') {
+      document.getElementById('nifti-URL').value = fileToPreload;
+      downloadAndView();
+    }
+  });
+
+  function getParameterByName (name) {
+    const url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`);
+    const results = regex.exec(url);
+    if (!results) {
+      return null;
+    }
+    if (!results[2]) {
+      return '';
+    }
+
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+  }
 </script>
 </html>

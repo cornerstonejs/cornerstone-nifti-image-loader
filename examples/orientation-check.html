@@ -271,13 +271,17 @@
     }
   }
 
+  const elementZ = document.getElementById('nifti-image');
+  const elementX = document.getElementById('nifti-image-x');
+  const elementY = document.getElementById('nifti-image-y');
+
   function downloadAndView(elements) {
     let url = document.getElementById('nifti-URL').value;
     let imageIdObject = ImageId.fromURL(`nifti:${url}`);
 
-    loadAndViewImage(elements[0], `nifti:${imageIdObject.filePath}#z`);
-    loadAndViewImage(elements[1], `nifti:${imageIdObject.filePath}#x`);
-    loadAndViewImage(elements[2], `nifti:${imageIdObject.filePath}#y`);
+    loadAndViewImage(elementZ, `nifti:${imageIdObject.filePath}#z`);
+    loadAndViewImage(elementX, `nifti:${imageIdObject.filePath}#x`);
+    loadAndViewImage(elementY, `nifti:${imageIdObject.filePath}#y`);
   }
 
   cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
@@ -286,13 +290,8 @@
     loadProgress.textContent = `Image Load Progress: ${eventData.percentComplete}%`;
   });
 
-  const elementZ = document.getElementById('nifti-image');
   cornerstone.enable(elementZ);
-
-  const elementX = document.getElementById('nifti-image-x');
   cornerstone.enable(elementX);
-
-  const elementY = document.getElementById('nifti-image-y');
   cornerstone.enable(elementY);
 
   document.getElementById('download-and-view').addEventListener('click', function(e) {
@@ -313,5 +312,30 @@
       setTimeout(() => moreInfoEl.classList.remove('highlighted'), 100);
     }
   });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // check if there is a query parameter pointing to a file to be preloaded
+    const fileToPreload = (getParameterByName('file') || '').trim();
+
+    if (fileToPreload !== '') {
+      document.getElementById('nifti-URL').value = fileToPreload;
+      downloadAndView();
+    }
+  });
+
+  function getParameterByName (name) {
+    const url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`);
+    const results = regex.exec(url);
+    if (!results) {
+      return null;
+    }
+    if (!results[2]) {
+      return '';
+    }
+
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+  }
 </script>
 </html>
