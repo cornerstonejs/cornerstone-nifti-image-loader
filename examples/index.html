@@ -80,9 +80,6 @@
       </div>
     </div>
 
-    <!-- <input type="checkbox" id="toggleModalityLUT">Apply Modality LUT</input>
-    <input type="checkbox" id="toggleVOILUT">Apply VOI LUT</input> -->
-
     <section id="image-and-data-info">
       <div id="nifti-image-container"
          oncontextmenu="return false"
@@ -277,32 +274,6 @@
     downloadAndView();
     e.preventDefault();
   });
-
-  // document.getElementById('toggleModalityLUT').addEventListener('click', function() {
-  //   var applyModalityLUT = document.getElementById('toggleModalityLUT').checked;
-  //   console.log('applyModalityLUT=', applyModalityLUT);
-  //   var image = cornerstone.getImage(element);
-  //   var viewport = cornerstone.getViewport(element);
-  //   if(applyModalityLUT) {
-  //     viewport.modalityLUT = image.modalityLUT;
-  //   } else {
-  //     viewport.modalityLUT = undefined;
-  //   }
-  //   cornerstone.setViewport(element, viewport);
-  // });
-  //
-  // document.getElementById('toggleVOILUT').addEventListener('click', function() {
-  //   var applyVOILUT = document.getElementById('toggleVOILUT').checked;
-  //   console.log('applyVOILUT=', applyVOILUT);
-  //   var image = cornerstone.getImage(element);
-  //   var viewport = cornerstone.getViewport(element);
-  //   if(applyVOILUT) {
-  //       viewport.voiLUT = image.voiLUT;
-  //   } else {
-  //       viewport.voiLUT = undefined;
-  //   }
-  //   cornerstone.setViewport(element, viewport);
-  // });
 
   document.getElementById('toggle-more-info').addEventListener('click', function() {
     const moreInfoEl = document.querySelector('#more-info');
