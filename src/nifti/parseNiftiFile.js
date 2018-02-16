@@ -69,7 +69,6 @@ export function parseNiftiFile (fileData, metaData) {
   };
 }
 
-function getOrientationMatrix (header) {
 function ensureUnitInMillimeters (nifti, header) {
   /* eslint no-bitwise: off */
   const spatialUnitMask = 0b111;
@@ -116,14 +115,20 @@ function ensureUnitInMillimeters (nifti, header) {
   }
 }
 
-    return header.affine;
+function getOrientationMatrix (header) {
+  let matrix;
+
+  if (header.affine) {
+    matrix = JSON.parse(JSON.stringify(header.affine));
+  } else {
+    matrix = header.convertNiftiQFormToNiftiSForm(
+      header.quatern_b, header.quatern_c, header.quatern_d,
+      header.qoffset_x, header.qoffset_y, header.qoffset_z,
+      header.pixDims[1], header.pixDims[2], header.pixDims[3],
+      header.pixDims[0]);
   }
 
-  return header.convertNiftiQFormToNiftiSForm(
-    header.quatern_b, header.quatern_c, header.quatern_d,
-    header.qoffset_x, header.qoffset_y, header.qoffset_z,
-    header.pixDims[1], header.pixDims[2], header.pixDims[3],
-    header.pixDims[0]);
+  return matrix;
 }
 
 function niftiDatatypeCodeToTypedArray (nifti, datatypeCode) {
