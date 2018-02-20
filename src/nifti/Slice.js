@@ -1,11 +1,8 @@
 import { external } from '../externalModules.js';
 import flattenNDarray from '../shared/flattenNDarray.js';
 import arrayRotateRight from '../shared/arrayRotateRight.js';
-// import Vector3 from '../shared/Vector3.js';
-import { multiplyMatrixAndPoint, transpose} from '../shared/matrixOperations.js';
-import * as cornerstoneMath from 'cornerstone-math';
-
-const Vector3 = cornerstoneMath.Vector3;
+import multiplyMatrixAndPoint from '../shared/multiplyMatrixAndPoint.js';
+import normalizeVector from '../shared/normalizeVector.js';
 
 /* eslint class-methods-use-this: off */
 // private methods
@@ -45,9 +42,8 @@ export default class Slice {
     const rowPixelSpacing = volumeMetaData.pixelSpacing[rowsIndex];
     const columnPixelSpacing = volumeMetaData.pixelSpacing[columnsIndex];
     const slicePixelSpacing = volumeMetaData.pixelSpacing[framesIndex];
-    const { rowCosines, columnCosines, rowFlip, columnFlip } = this[getPatientOrientation](volumeMetaData.orientationMatrix, columnsIndex, rowsIndex);
-    // const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex, columns, rows, columnCosines, rowCosines, columnPixelSpacing, rowPixelSpacing, slicePixelSpacing, rowFlip, columnFlip);
-    const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex, columns, rows, columnCosines, rowCosines, columnPixelSpacing, rowPixelSpacing, slicePixelSpacing, rowFlip, columnFlip);
+    const { rowCosines, columnCosines } = this[getPatientOrientation](volumeMetaData.orientationMatrix, columnsIndex, rowsIndex);
+    const patientPosition = this[getPatientPosition](volumeMetaData.orientationMatrix, framesIndex);
 
     Object.assign(this.metaData, {
       columns,
@@ -61,12 +57,11 @@ export default class Slice {
       slicePixelSpacing,
       columnCosines,
       rowCosines,
-      rowFlip,
-      columnFlip,
       patientPosition
     });
   }
 
+<<<<<<< HEAD
   [determinePixelData] () {
     this.volume.imageDataNDarray.set(0, 0, 0, 255);
     // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
@@ -95,6 +90,8 @@ export default class Slice {
     }
   }
 
+=======
+>>>>>>> 11dd571... Finishes orientation, position and auto flipping to match neurological
   [getDimensionsIndices] (sliceDimension) {
     let rowsIndex, columnsIndex, framesIndex;
 
@@ -126,6 +123,7 @@ export default class Slice {
   }
 
   [getPatientOrientation] (matrix, columnsIndex, rowsIndex) {
+<<<<<<< HEAD
     // gets the signs of the rotation matrix for the dimension being shown horizontally
     // (columnSign) and the one shown vertically (rowSign)
     // const columnSign = matrix[columnsIndex][columnsIndex] < 0 ? -1 : 1;
@@ -153,36 +151,36 @@ export default class Slice {
     // if (rowFlip) {
     //   rowCosines = rowCosines.map((cosine) => -cosine);
     // }
+=======
+    const rowCosines = [matrix[0][columnsIndex], matrix[1][columnsIndex], matrix[2][columnsIndex]];
+    const columnCosines = [matrix[0][rowsIndex], matrix[1][rowsIndex], matrix[2][rowsIndex]];
+>>>>>>> 11dd571... Finishes orientation, position and auto flipping to match neurological
 
     return {
-      rowCosines: new Vector3(...rowCosines).normalize().toArray(),
-      columnCosines: new Vector3(...columnCosines).normalize().toArray(),
-      // rowFlip: rowFlip ? -1 : 1,
-      // columnFlip: columnFlip ? -1 : 1
+      rowCosines: normalizeVector(rowCosines),
+      columnCosines: normalizeVector(columnCosines)
     };
   }
 
-  [getPatientPosition] (matrix, dimensionIndex, columns, rows) {
+  [getPatientPosition] (matrix, dimensionIndex) {
     const ijkPoint = arrayRotateRight([this.index, 0, 0], dimensionIndex);
+    const position = multiplyMatrixAndPoint(matrix, ijkPoint);
 
-    // duplicates the matrix
-    matrix = JSON.parse(JSON.stringify(matrix));
+    // return the point, discarding the homogeneous coordinate
+    return position.slice(0, 3);
+  }
 
+  [determinePixelData] () {
+    // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
+    const slicePick = arrayRotateRight([this.index, null, null], this.metaData.framesIndex);
+    const imageDataView = this.volume.imageDataNDarray.pick(...slicePick);
 
-    matrix[0][0] *= -1;
-    matrix[0][1] *= -1;
-    matrix[0][2] *= -1;
-    matrix[0][3] *= -1;
+    const isDataInFloat = this.volume.metaData.dataType.isDataInFloat;
+    const TypeArrayConstructor = isDataInFloat ? Uint16Array : this.volume.metaData.dataType.TypedArrayConstructor;
 
-    matrix[1][0] *= -1;
-    matrix[1][1] *= -1;
-    matrix[1][2] *= -1;
-    matrix[1][3] *= -1;
+    this.pixelData = flattenNDarray(imageDataView, TypeArrayConstructor);
 
-    matrix = transpose(matrix);
-
-    const position = multiplyMatrixAndPoint([].concat.apply([], matrix), [...ijkPoint, 1]);
-
+<<<<<<< HEAD
     return position.slice(0, 3);
   }
   //
@@ -227,6 +225,16 @@ export default class Slice {
   //
   //   return position.toArray();
   // }
+=======
+    // if the data was originally in float values, we also slice the
+    // original float ndarray
+    if (isDataInFloat) {
+      const floatImageDataView = this.volume.imageDataNDarray.pick(...slicePick);
+
+      this.floatPixelData = flattenNDarray(floatImageDataView, this.volume.metaData.dataType.TypedArrayConstructor);
+    }
+  }
+>>>>>>> 11dd571... Finishes orientation, position and auto flipping to match neurological
 
   get cornerstoneImageObject () {
     const volumeMetaData = this.volume.metaData;
