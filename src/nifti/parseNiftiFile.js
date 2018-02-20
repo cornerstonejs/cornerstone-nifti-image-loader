@@ -34,6 +34,7 @@ export function parseNiftiHeader (fileData) {
   };
   const pixelSpacing = header.pixDims.slice(1, 4);
   const orientationMatrix = getOrientationMatrix(header);
+  const orientationString = header.convertNiftiSFormToNEMA(orientationMatrix);
 
   return {
     slope,
@@ -47,6 +48,7 @@ export function parseNiftiHeader (fileData) {
     dataType,
     pixelSpacing,
     orientationMatrix,
+    orientationString,
     header
   };
 }
