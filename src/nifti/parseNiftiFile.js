@@ -118,19 +118,26 @@ function ensureUnitInMillimeters (nifti, header) {
 }
 
 function getOrientationMatrix (header) {
-  let matrix;
+  if (header.affine && header.sform_code > 0) {
+    return header.affine;
+  }
 
-  if (header.affine) {
-    matrix = JSON.parse(JSON.stringify(header.affine));
-  } else {
-    matrix = header.convertNiftiQFormToNiftiSForm(
+  if (header.qform_code > 0) {
+    return header.convertNiftiQFormToNiftiSForm(
       header.quatern_b, header.quatern_c, header.quatern_d,
       header.qoffset_x, header.qoffset_y, header.qoffset_z,
       header.pixDims[1], header.pixDims[2], header.pixDims[3],
       header.pixDims[0]);
   }
 
-  return matrix;
+  // if there is no orientation in the file, return an invalid matrix
+  // so cornerstone understands this file has no orientation info
+  return [
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 1]
+  ];
 }
 
 function niftiDatatypeCodeToTypedArray (nifti, datatypeCode) {
