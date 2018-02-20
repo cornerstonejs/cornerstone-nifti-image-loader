@@ -8,6 +8,9 @@ export function parseNiftiHeader (fileData) {
   // with higher level data
   const header = nifti.readHeader(fileData);
 
+  // ensures the sizes are represented using millimeters, if they are not
+  ensureUnitInMillimeters(nifti, header);
+
   // meta data related to value scaling
   const intercept = header.scl_inter;
   // if scl_slope is 0, the nifti specs say it's not defined
@@ -67,7 +70,52 @@ export function parseNiftiFile (fileData, metaData) {
 }
 
 function getOrientationMatrix (header) {
+function ensureUnitInMillimeters (nifti, header) {
+  /* eslint no-bitwise: off */
+  const spatialUnitMask = 0b111;
+  let multiplier;
+
+  switch (header.xyzt_units & spatialUnitMask) {
+  case nifti.NIFTI1.UNITS_METER:
+    multiplier = 1000;
+    break;
+
+  case nifti.NIFTI1.UNITS_MICRON:
+    multiplier = 1 / 1000;
+    break;
+
+  case nifti.NIFTI1.UNITS_MM:
+  default:
+    // shouldn't do anything... we want units in millimeters
+    multiplier = 1;
+    break;
+  }
+
+  header.pixDims = header.pixDims.map((pixDim, i) => {
+    if (i > 0 && i <= header.dims[0]) {
+      return pixDim * multiplier;
+    }
+
+    return pixDim;
+  });
+
   if (header.affine) {
+    header.affine = header.affine.map((row) => row.map((value) => value * multiplier));
+  }
+
+  if (header.quatern_b || header.quatern_c || header.quatern_d) {
+    header.quatern_b *= multiplier;
+    header.quatern_c *= multiplier;
+    header.quatern_d *= multiplier;
+  }
+
+  if (header.qoffset_x || header.qoffset_y || header.qoffset_z) {
+    header.qoffset_x *= multiplier;
+    header.qoffset_y *= multiplier;
+    header.qoffset_z *= multiplier;
+  }
+}
+
     return header.affine;
   }
 
