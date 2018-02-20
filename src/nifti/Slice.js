@@ -80,19 +80,20 @@ export default class Slice {
 
     imageDataView.set(0, 0, 128);
 
-    const isDataInFloat = this.volume.metaData.dataType.isDataInFloat;
-    const TypeArrayConstructor = isDataInFloat ? Uint16Array : this.volume.metaData.dataType.TypedArrayConstructor;
+    const TypeArrayConstructor = this.volume.metaData.dataType.TypedArrayConstructor;
 
     this.pixelData = flattenNDarray(imageDataView, TypeArrayConstructor);
 
     // if the data was originally in float values, we also slice the
     // original float ndarray
+    const isDataInFloat = this.volume.metaData.dataType.isDataInFloat;
+
     if (isDataInFloat) {
       const floatImageDataView = this.volume.imageDataNDarray.pick(...slicePick).
         step(columnFlip, rowFlip).
         transpose(1, 0);
 
-      this.floatPixelData = flattenNDarray(floatImageDataView, this.volume.metaData.dataType.TypedArrayConstructor);
+      this.floatPixelData = flattenNDarray(floatImageDataView, this.volume.metaData.dataType.OriginalTypedArrayConstructor);
     }
   }
 

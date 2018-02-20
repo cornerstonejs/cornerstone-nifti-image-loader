@@ -6,7 +6,7 @@ function linearTransformation (value, slope, intercept) {
 }
 
 export default function convertFloatDataToInteger (imageDataView, metaData) {
-  const intRange = Math.pow(2, 16); // 65536
+  const intRange = Math.pow(2, 16) - 1; // 65535
   const floatMin = metaData.minPixelValue;
   const floatMax = metaData.maxPixelValue;
   const floatRange = floatMax - floatMin;
@@ -22,9 +22,9 @@ export default function convertFloatDataToInteger (imageDataView, metaData) {
   );
 
   // converts from float to int, scaling each with a linear linearTransformation
-  for (let i = 0; i < imageDataView.shape[0]; i++) {
+  for (let k = 0; k < imageDataView.shape[2]; k++) {
     for (let j = 0; j < imageDataView.shape[1]; j++) {
-      for (let k = 0; k < imageDataView.shape[2]; k++) {
+      for (let i = 0; i < imageDataView.shape[0]; i++) {
         let value = imageDataView.get(i, j, k);
 
         value = linearTransformation(value, slope, intercept);
@@ -36,7 +36,6 @@ export default function convertFloatDataToInteger (imageDataView, metaData) {
   return {
     convertedImageDataView,
     floatImageDataView: imageDataView,
-    OriginalTypedArrayConstructor: metaData.dataType.TypedArrayConstructor,
     metaData: {
       slope,
       intercept,
@@ -44,6 +43,7 @@ export default function convertFloatDataToInteger (imageDataView, metaData) {
       maxPixelValue: Math.floor(linearTransformation(metaData.maxPixelValue, slope, intercept)),
       dataType: {
         TypedArrayConstructor: Uint16Array,
+        OriginalTypedArrayConstructor: metaData.dataType.TypedArrayConstructor,
         isDataInFloat: true,
         isDataInColors: metaData.dataType.isDataInColors
       }
