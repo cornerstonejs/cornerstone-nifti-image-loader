@@ -69,9 +69,11 @@ export default class Volume {
         not doing auto flipping to match the neurological view`);
     }
 
-    this.imageDataNDarray = this.imageDataNDarray.step(...steps);
-    if (this.floatImageDataView) {
-      this.floatImageDataNDarray = this.floatImageDataNDarray.step(...steps);
+    if (this.hasImageData) {
+      this.imageDataNDarray = this.imageDataNDarray.step(...steps);
+      if (this.floatImageDataNDarray) {
+        this.floatImageDataNDarray = this.floatImageDataNDarray.step(...steps);
+      }
     }
   }
 
