@@ -39,7 +39,11 @@ const nifti = {
 
     let promise = volumeAcquisition.acquireHeaderOnly(imageIdObject, isRangeRead).
       then((volume) => volume.slice(imageIdObject)).
-      then((slice) => slice.compoundMetaData);
+      then((slice) => {
+        metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
+
+        return slice.compoundMetaData;
+      });
 
     // temporary 'hack' to make the loader work with applications that expect
     // jquery.deferred promises (such as the StudyPrefetcher in OHIF)
