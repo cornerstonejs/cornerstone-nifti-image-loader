@@ -30,10 +30,10 @@ export function metaDataProvider (type, imageId) {
       frameOfReferenceUID,
       columns: metaData.columns,
       rows: metaData.rows,
-      imageOrientationPatient: [...metaData.rowCosines, ...metaData.columnCosines],
+      imageOrientationPatient: metaData.imageOrientationPatient,
       columnCosines: metaData.columnCosines,
       rowCosines: metaData.rowCosines,
-      imagePositionPatient: metaData.patientPosition,
+      imagePositionPatient: metaData.imagePositionPatient,
       // assuming slices contain no gaps between them (contiguous voxels),
       // as the nifti file does not hold thickness/gap separately
       sliceThickness: metaData.slicePixelSpacing,

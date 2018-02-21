@@ -57,7 +57,9 @@ export default class Slice {
       slicePixelSpacing,
       columnCosines,
       rowCosines,
-      patientPosition
+      imagePositionPatient: patientPosition,
+      imageOrientationPatient: [...rowCosines, ...columnCosines],
+      frameOfReferenceUID: this.imageIdObject.filePath
     });
   }
 
