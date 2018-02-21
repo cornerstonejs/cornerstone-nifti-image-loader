@@ -69,13 +69,8 @@ export default class Slice {
     // pick a slice (sliceIndex) according to the wanted dimension (sliceDimension)
     // const dimensionIndex = 'xyz'.indexOf(slice.dimension);
     const slicePick = arrayRotateRight([this.index, null, null], this.metaData.framesIndex);
-    const { columnFlip, rowFlip } = this.metaData;
-    const imageDataView = this.volume.imageDataNDarray.pick(...slicePick).
-      step(columnFlip, rowFlip);
-
-    imageDataView.set(0, 0, 128);
-
     const TypeArrayConstructor = this.volume.metaData.dataType.TypedArrayConstructor;
+    const imageDataView = this.volume.imageDataNDarray.pick(...slicePick);
 
     this.pixelData = flattenNDarray(imageDataView, TypeArrayConstructor);
 
@@ -84,9 +79,7 @@ export default class Slice {
     const isDataInFloat = this.volume.metaData.dataType.isDataInFloat;
 
     if (isDataInFloat) {
-      const floatImageDataView = this.volume.imageDataNDarray.pick(...slicePick).
-        step(columnFlip, rowFlip).
-        transpose(1, 0);
+      const floatImageDataView = this.volume.imageDataNDarray.pick(...slicePick);
 
       this.floatPixelData = flattenNDarray(floatImageDataView, this.volume.metaData.dataType.OriginalTypedArrayConstructor);
     }
