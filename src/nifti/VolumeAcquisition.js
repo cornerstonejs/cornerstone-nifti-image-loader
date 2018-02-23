@@ -71,7 +71,7 @@ export default class VolumeAcquisition {
 
       fileFetchedPromise.
         // decompress (if compressed) the file raw data
-        then((data) => this[decompress](data)).
+        then((data) => this[decompress](data, imageIdObject)).
         // gather meta data of the file/volume
         then((data) => this[readMetaData](data)).
         // reads the image data and puts it in an ndarray (to be sliced)
@@ -107,7 +107,7 @@ export default class VolumeAcquisition {
 
       fileFetchedPromise.
         // decompress (if compressed) the file raw data
-        then((data) => this[decompress](data)).
+        then((data) => this[decompress](data, imageIdObject)).
         // gather meta data of the file/volume
         then((data) => this[readMetaData](data)).
         // creates the volume: metadata + image data
@@ -123,8 +123,8 @@ export default class VolumeAcquisition {
   }
 
   // private methods
-  [decompress] (fileRawData) {
-    return decompressNiftiData(fileRawData);
+  [decompress] (fileRawData, imageIdObject) {
+    return decompressNiftiData(fileRawData, imageIdObject);
   }
 
   [readMetaData] (decompressedFileData) {

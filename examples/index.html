@@ -243,12 +243,12 @@
         document.getElementById('totalTime').textContent = `${time}ms`;
 
       }, function(err) {
-        throw err;
         alert(err);
+        console.error(err);
       });
     } catch(err) {
-      throw err;
       alert(err);
+      console.error(err);
     }
   }
 

@@ -128,7 +128,9 @@ function readyStateChange (options, params) {
       if ([200, 206].includes(this.status)) {
         params.deferred.resolve(this.response);
       } else {
-        params.deferred.reject(this);
+        const errorDescription = `Could not fetch the file '${params.url}'. Error code was ${this.status}.`;
+
+        params.deferred.reject(new Error(errorDescription));
       }
     }
   };

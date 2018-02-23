@@ -7,19 +7,26 @@ import cornerstoneEvents from './cornerstoneEvents.js';
 
 const nifti = {
   loadImage (imageId) {
-    const imageIdObject = ImageId.fromURL(imageId);
-    const volumeAcquisition = VolumeAcquisition.getInstance();
+    let promise;
 
-    cornerstoneEvents.imageLoadStart(imageIdObject);
+    try {
+      const imageIdObject = ImageId.fromURL(imageId);
+      const volumeAcquisition = VolumeAcquisition.getInstance();
 
-    let promise = volumeAcquisition.acquire(imageIdObject).
-      then((volume) => volume.slice(imageIdObject)).
-      then((slice) => {
-        metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
-        cornerstoneEvents.imageLoadEnd(imageIdObject);
+      cornerstoneEvents.imageLoadStart(imageIdObject);
 
-        return slice.cornerstoneImageObject;
-      });
+      promise = volumeAcquisition.acquire(imageIdObject).
+        then((volume) => volume.slice(imageIdObject)).
+        then((slice) => {
+          metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
+          cornerstoneEvents.imageLoadEnd(imageIdObject);
+
+          return slice.cornerstoneImageObject;
+        });
+
+    } catch (error) {
+      promise = Promise.reject(error);
+    }
 
     // temporary 'hack' to make the loader work with applications that expect
     // jquery.deferred promises (such as the StudyPrefetcher in OHIF)
@@ -34,16 +41,23 @@ const nifti = {
   },
 
   loadHeader (imageId, isRangeRead = true) {
-    const imageIdObject = ImageId.fromURL(imageId);
-    const volumeAcquisition = VolumeAcquisition.getInstance();
+    let promise;
 
-    let promise = volumeAcquisition.acquireHeaderOnly(imageIdObject, isRangeRead).
-      then((volume) => volume.slice(imageIdObject)).
-      then((slice) => {
-        metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
+    try {
+      const imageIdObject = ImageId.fromURL(imageId);
+      const volumeAcquisition = VolumeAcquisition.getInstance();
 
-        return slice.compoundMetaData;
-      });
+      promise = volumeAcquisition.acquireHeaderOnly(imageIdObject, isRangeRead).
+        then((volume) => volume.slice(imageIdObject)).
+        then((slice) => {
+          metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
+
+          return slice.compoundMetaData;
+        });
+
+    } catch (error) {
+      promise = Promise.reject(error);
+    }
 
     // temporary 'hack' to make the loader work with applications that expect
     // jquery.deferred promises (such as the StudyPrefetcher in OHIF)

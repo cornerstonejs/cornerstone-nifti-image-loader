@@ -11,7 +11,7 @@ const dependencies = {
  * @param  {ArrayBuffer} rawData the raw file data (compressed or not).
  * @return {ArrayBuffer}         the decompressed file data.
  */
-export default function decompressNiftiData (rawData) {
+export default function decompressNiftiData (rawData, imageIdObject) {
   const nifti = dependencies.nifti;
 
   let fileData = rawData;
@@ -22,7 +22,7 @@ export default function decompressNiftiData (rawData) {
   }
 
   if (!nifti.isNIFTI(fileData)) {
-    throw new Error('The file being loaded is not a valid NIFTI file.');
+    throw new Error(`The file '${imageIdObject.filePath}' is not a valid NIFTI file.`);
   }
 
   return fileData;
