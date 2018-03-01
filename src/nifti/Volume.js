@@ -64,6 +64,61 @@ export default class Volume {
       }
       break;
 
+    case 'XZY':
+      // if 'X-', we need to flip x axis so patient's right is
+      // shown on the right
+      if (senses[0] === '-') {
+        matrix[0][0] *= -1;
+        matrix[0][1] *= -1;
+        matrix[0][2] *= -1;
+        matrix[0][3] *= -1;
+        steps[0] = -1;
+      }
+      // if 'Z+' we need to flip z axis so patient's anterior is shown on the
+      // top
+      if (senses[1] === '+') {
+        matrix[1][0] *= -1;
+        matrix[1][1] *= -1;
+        matrix[1][2] *= -1;
+        matrix[1][3] *= -1;
+        steps[1] = -1;
+      }
+      // if 'Y-' we need to flip y axis so patient's head is shown on the top
+      if (senses[2] === '-') {
+        matrix[2][0] *= -1;
+        matrix[2][1] *= -1;
+        matrix[2][2] *= -1;
+        matrix[2][3] *= -1;
+        steps[2] = -1;
+      }
+      break;
+
+    case 'YZX':
+      // if 'Y+', we need to flip i axis so patient's anterior is
+      // shown on the left
+      if (senses[0] === '+') {
+        matrix[0][0] *= -1;
+        matrix[0][1] *= -1;
+        matrix[0][2] *= -1;
+        matrix[0][3] *= -1;
+        steps[0] = -1;
+      }
+      // if 'Z+' we need to flip j axis so patient's head is shown on the
+      // top
+      if (senses[1] === '+') {
+        steps[1] = -1;
+      }
+      // if 'X+' we need to flip k axis so patient's head is shown on the top
+      if (senses[2] === '+') {
+        matrix[2][0] *= -1;
+        matrix[2][1] *= -1;
+        matrix[2][2] *= -1;
+        matrix[2][3] *= -1;
+        steps[2] = -1;
+      }
+      break;
+
+
     default:
       console.info(`Nifti file with a somewhat funky orientation...
         not doing auto flipping to match the neurological view`);
