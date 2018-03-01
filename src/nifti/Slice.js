@@ -35,7 +35,7 @@ export default class Slice {
   [determineMetaData] () {
     const volumeMetaData = this.volume.metaData;
     const { rowsIndex, columnsIndex, framesIndex } = this[getDimensionsIndices](this.dimension);
-    const dimensions = [volumeMetaData.xLength, volumeMetaData.yLength, volumeMetaData.zLength];
+    const dimensions = [volumeMetaData.iLength, volumeMetaData.jLength, volumeMetaData.kLength];
     const rows = dimensions[rowsIndex];
     const columns = dimensions[columnsIndex];
     const numberOfFrames = dimensions[framesIndex];

@@ -138,8 +138,8 @@ export default class VolumeAcquisition {
     const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData, metaData);
 
     Object.assign(metaData, moreMetaData);
-    const dimensions = [metaData.xLength, metaData.yLength, metaData.zLength];
-    const strides = [1, metaData.xLength, metaData.xLength * metaData.yLength];
+    const dimensions = [metaData.iLength, metaData.jLength, metaData.kLength];
+    const strides = [1, metaData.iLength, metaData.iLength * metaData.jLength];
 
     // create an ndarray of the whole data
     const imageDataNDarray = ndarray(imageData, dimensions, strides);
