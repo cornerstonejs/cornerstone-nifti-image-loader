@@ -15,15 +15,19 @@
   position: relative;
   width: 350px;
   height: 350px;
-  border-style: solid;
-  border-color: red;
+  border: 1px solid #6c757d;
   color: white;
-  margin: 10px;
+  margin: 10px 10px 2rem;
 }
 
-#nifti-image,
-#nifti-image-x,
-#nifti-image-y {
+.display-metadata {
+  position: absolute;
+  right: 0rem;
+  bottom: -1rem;
+  transform: scale(0.75);
+}
+
+.nifti-image-container > div[id^="nifti-image-"] {
   position: absolute;
   top: 0;
   bottom: 0;
