@@ -25,7 +25,7 @@ export function parseNiftiHeader (fileData) {
   const windowMaximumValue = isWindowInfoAbsent ? undefined : header.cal_max;
 
   // meta data related to the image itself
-  const [, iLength, jLength, kLength] = header.dims;
+  const voxelLength = header.dims.slice(1, 4);
   const dataType = {
     TypedArrayConstructor: niftiDatatypeCodeToTypedArray(nifti, header.datatypeCode),
     samplesPerPixel: getSamplesPerPixel(header.dims),
@@ -42,9 +42,7 @@ export function parseNiftiHeader (fileData) {
     windowMinimumValue,
     windowMaximumValue,
     isWindowInfoAbsent,
-    iLength,
-    jLength,
-    kLength,
+    voxelLength,
     dataType,
     pixelSpacing,
     orientationMatrix,

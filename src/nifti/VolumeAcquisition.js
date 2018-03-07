@@ -81,7 +81,7 @@ export default class VolumeAcquisition {
         // gather meta data that depends on the image data (eg min/max, wc/ww)
         then((data) => this[determineImageDependentMetaData](data)).
         // creates the volume: metadata + image data
-        then((data) => this[createVolume](data)).
+        then((data) => this[createVolume](data, imageIdObject)).
         // adds the volume to the cache
         then((data) => this[cacheVolume](data, imageIdObject)).
         // fulfills the volumeAcquiredPromise
@@ -111,7 +111,7 @@ export default class VolumeAcquisition {
         // gather meta data of the file/volume
         then((data) => this[readMetaData](data)).
         // creates the volume: metadata + image data
-        then((data) => this[createVolume](data)).
+        then((data) => this[createVolume](data, imageIdObject)).
         // adds the volume to the cache
         then((data) => this[cacheVolume](data, imageIdObject)).
         // fulfills the volumeAcquiredPromise
@@ -138,8 +138,8 @@ export default class VolumeAcquisition {
     const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData, metaData);
 
     Object.assign(metaData, moreMetaData);
-    const dimensions = [metaData.iLength, metaData.jLength, metaData.kLength];
-    const strides = [1, metaData.iLength, metaData.iLength * metaData.jLength];
+    const dimensions = metaData.voxelLength;
+    const strides = [1, dimensions[0], dimensions[0] * dimensions[1]];
 
     // create an ndarray of the whole data
     const imageDataNDarray = ndarray(imageData, dimensions, strides);
@@ -190,8 +190,8 @@ export default class VolumeAcquisition {
     };
   }
 
-  [createVolume] ({ metaData, imageDataNDarray }) {
-    return new Volume(metaData, imageDataNDarray, metaData.floatImageDataNDarray);
+  [createVolume] ({ metaData, imageDataNDarray }, imageIdObject) {
+    return new Volume(imageIdObject, metaData, imageDataNDarray, metaData.floatImageDataNDarray);
   }
 
   [cacheVolume] (volume, imageIdObject) {
