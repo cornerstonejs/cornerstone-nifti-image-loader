@@ -33,6 +33,10 @@ export default class Volume {
     const voxelStorageOrder = orientationString.slice(0, 3); // eg 'XYZ'
 
     switch (voxelStorageOrder) {
+    case 'XYZ':
+      // no need to change anything...
+      break;
+
     case 'XZY':
       // changes the voxel ordering in the volume to be XYZ
       this[changeVoxelStorageOrder]([0, 2, 1]);
