@@ -5,7 +5,7 @@
  */
 
 /**
- * minMaxNDarray - Calculates the minimum and maximum value in a 3D ndarray. This
+ * minMaxNDarray - Calculates the minimum and maximum value in a 4D ndarray. This
  * is necessary to provide cornerstone the min and max values of the array of
  * values consisting of the image we're passing to it.
  *
@@ -25,18 +25,21 @@ function minMaxNDarray (ndarray) {
   // performance note: a for with vanilla ifs is the most performant way to
   // find min and max values from an array
   // source: https://jsperf.com/determining-min-and-max-value-from-array/1
-  let minimum = ndarray.get(0, 0, 0);
+  let minimum = ndarray.get(0, 0, 0, 0);
   let maximum = minimum;
 
-  for (let i = 0; i < ndarray.shape[0]; i++) {
-    for (let j = 0; j < ndarray.shape[1]; j++) {
-      for (let k = 0; k < ndarray.shape[2]; k++) {
-        const currentValue = ndarray.get(i, j, k);
+  /* eslint max-depth: off */
+  for (let l = 0; l < ndarray.shape[3]; l++) {
+    for (let k = 0; k < ndarray.shape[2]; k++) {
+      for (let j = 0; j < ndarray.shape[1]; j++) {
+        for (let i = 0; i < ndarray.shape[0]; i++) {
+          const currentValue = ndarray.get(i, j, k, l);
 
-        if (currentValue < minimum) {
-          minimum = currentValue;
-        } else if (currentValue > maximum) {
-          maximum = currentValue;
+          if (currentValue < minimum) {
+            minimum = currentValue;
+          } else if (currentValue > maximum) {
+            maximum = currentValue;
+          }
         }
       }
     }

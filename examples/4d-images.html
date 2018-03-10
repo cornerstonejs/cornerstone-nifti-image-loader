@@ -4,14 +4,13 @@
   <meta name="charset" content="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <!-- twitter bootstrap CSS stylesheet - included to make things pretty,
-       not needed or used by cornerstone -->
+  <!-- twitter bootstrap CSS stylesheet - included to make things pretty, not needed or used by cornerstone -->
   <link href="bootstrap.min.css" rel="stylesheet">
   <link href="cornerstone.min.css" rel="stylesheet">
-  <link href="orientation-check.css" rel="stylesheet">
+  <link href="example.css" rel="stylesheet">
 </head>
 <body>
-  <div class="container-fluid">
+  <div class="container">
     <header id="main-header">
       <h1>NIFTI loading</h1>
       <h2><small class="text-muted">Example of displaying a NIFTI image using Cornerstone</small></h2>
@@ -72,7 +71,6 @@
                   <option value="data/dti_FA.nii.gz">data/dti_FA.nii.gz (compressed, 395.6 KB)</option>
                   <option value="data/dti_V1.nii.gz">data/dti_V1.nii.gz (compressed, 1.2 MB)</option>
                   <option value="data/mni152_2009_256.nii.gz">data/mni152_2009_256.nii.gz (compressed, 4.5 MB)</option>
-                  <option value="data/2878_1_1_localizera.nii.gz">data/2878_1_1_localizera.nii.gz (YZX pixel order, compressed, 1.6 MB)</option>
                 </datalist>
               </div>
             </div>
@@ -85,50 +83,15 @@
     </div>
 
     <section id="image-and-data-info">
-      <div class="nifti-image-container"
+      <div id="nifti-image-container"
          oncontextmenu="return false"
          class='disable-selection noIbar'
          unselectable='on'
          onselectstart='return false;'
          onmousedown='return false;'>
-        <div id="nifti-image-z"></div>
-        <button data-dimension="z" class="display-metadata btn btn-sm btn-secondary">Display meta data</button>
-      </div>
-      <div class="nifti-image-container"
-         oncontextmenu="return false"
-         class='disable-selection noIbar'
-         unselectable='on'
-         onselectstart='return false;'
-         onmousedown='return false;'>
-        <div id="nifti-image-x"></div>
-        <button data-dimension="x" class="display-metadata btn btn-sm btn-secondary">Display meta data</button>
-      </div>
-      <div class="nifti-image-container"
-         oncontextmenu="return false"
-         class='disable-selection noIbar'
-         unselectable='on'
-         onselectstart='return false;'
-         onmousedown='return false;'>
-        <div id="nifti-image-y"></div>
-        <button data-dimension="y" class="display-metadata btn btn-sm btn-secondary">Display meta data</button>
+        <div id="nifti-image"></div>
       </div>
       <div id="nifti-image-data">
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Columns:</span>
-          <span class="badge badge-pill badge-primary"  id="columns"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Rows:</span>
-          <span class="badge badge-pill badge-primary"  id="rows"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Number of Frames:</span>
-          <span class="badge badge-pill badge-primary"  id="numberOfFrames"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Pixel Spacing:</span>
-          <span class="badge badge-pill badge-primary" id="pixelSpacing"></span>
-        </div>
         <div class="metadata">
           <span class="badge badge-pill badge-light">Samples per Pixel:</span>
           <span class="badge badge-pill badge-primary"  id="samplesPerPixel"></span>
@@ -138,8 +101,20 @@
           <span class="badge badge-pill badge-primary"  id="photometricInterpretation"></span>
         </div>
         <div class="metadata">
+          <span class="badge badge-pill badge-light">Number of Frames:</span>
+          <span class="badge badge-pill badge-primary"  id="numberOfFrames"></span>
+        </div>
+        <div class="metadata">
           <span class="badge badge-pill badge-light">Planar Configuration:</span>
           <span class="badge badge-pill badge-primary"  id="planarConfiguration"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Rows:</span>
+          <span class="badge badge-pill badge-primary"  id="rows"></span>
+        </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Columns:</span>
+          <span class="badge badge-pill badge-primary"  id="columns"></span>
         </div>
         <div class="metadata">
           <span class="badge badge-pill badge-light">Pixel Aspect Ratio:</span>
@@ -185,6 +160,10 @@
           <span class="badge badge-pill badge-light">Max Stored Pixel Value:</span>
           <span class="badge badge-pill badge-primary"  id="maxStoredPixelValue"></span>
         </div>
+        <div class="metadata">
+          <span class="badge badge-pill badge-light">Total Time:</span>
+          <span class="badge badge-pill badge-primary"  id="totalTime"></span>
+        </div>
       </div>
     </section>
   </div>
@@ -203,61 +182,87 @@
   const ImageId = cornerstoneNIFTIImageLoader.nifti.ImageId;
   let loaded = false;
 
-  var synchronizer = new cornerstoneTools.Synchronizer("cornerstonenewimage", cornerstoneTools.updateImageSynchronizer);
-
-  function loadAndViewImage(element, imageId) {
+  function loadAndViewImage(imageId) {
+    const element = document.getElementById('nifti-image');
     const imageIdObject = ImageId.fromURL(imageId);
 
-    element.dataset.imageId = imageIdObject.url;
-
     try {
+      const start = new Date().getTime();
       cornerstone.loadAndCacheImage(imageIdObject.url).then(function(image) {
-
-        const numberOfSlices = cornerstone.metaData.get('multiFrameModule', imageIdObject.url).numberOfFrames;
+        console.log(image);
+        const timePoints = cornerstone.metaData.get('functional', imageIdObject.url).timeSlices;
         const stack = {
-          currentImageIdIndex: imageIdObject.slice.index,
-          imageIds: Array.from(Array(numberOfSlices), (_, i) => `nifti:${imageIdObject.filePath}#${imageIdObject.slice.dimension}-${i},t-0`)
+          currentImageIdIndex: imageIdObject.timePoint,
+          imageIds: Array.from(Array(timePoints), (_, i) => {
+            const imageId = new ImageId(
+              imageIdObject.filePath,
+              imageIdObject.slice,
+              i
+            );
+            return imageId.url;
+          })
         };
 
         const viewport = cornerstone.getDefaultViewportForImage(element, image);
         cornerstone.displayImage(element, image, viewport);
-        cornerstone.resize(element, true);
+        if(loaded === false) {
+          cornerstoneTools.addStackStateManager(element, ['stack', 'wwwc', 'pan', 'zoom']);
+          cornerstoneTools.addToolState(element, 'stack', stack);
+          cornerstoneTools.mouseInput.enable(element);
+          cornerstoneTools.mouseWheelInput.enable(element);
+          cornerstoneTools.wwwc.activate(element, 1);
+          cornerstoneTools.pan.activate(element, 2);
+          cornerstoneTools.zoom.activate(element, 4);
+          cornerstoneTools.stackScrollWheel.activate(element);
+          cornerstoneTools.orientationMarkers.enable(element);
+          loaded = true;
+        }
 
-        cornerstoneTools.addStackStateManager(element, ['stack']);
-        cornerstoneTools.addToolState(element, 'stack', stack);
-        cornerstoneTools.mouseInput.enable(element);
-        cornerstoneTools.mouseWheelInput.enable(element);
-        cornerstoneTools.pan.activate(element, 2);
-        cornerstoneTools.zoom.activate(element, 4);
-        cornerstoneTools.stackScrollWheel.activate(element);
-        cornerstoneTools.orientationMarkers.enable(element);
+        function getPixelRepresentation(value) {
+          return value === '0000H' ? '(unsigned)' : '(signed)';
+        }
 
-        synchronizer.add(element);
-        cornerstoneTools.stackPrefetch.enable(element);
-        cornerstoneTools.referenceLines.tool.enable(element, synchronizer);
-        cornerstoneTools.crosshairs.enable(element, 1, synchronizer);
+        function getPlanarConfiguration(value) {
+            return (typeof value === 'undefined' ? 'unspecified' : (value === 0 ? '(pixel)' : '(plane)'));
+        }
+
+        const metaData = (type) => cornerstone.metaData.get(type, imageIdObject.url);
+
+        document.getElementById('samplesPerPixel').textContent = metaData('imagePixelModule').samplesPerPixel;
+        document.getElementById('photometricInterpretation').textContent = metaData('imagePixelModule').photometricInterpretation;
+        document.getElementById('numberOfFrames').textContent = metaData('multiFrameModule').numberOfFrames;
+        document.getElementById('planarConfiguration').textContent = getPlanarConfiguration(metaData('imagePixelModule').planarConfiguration);
+        document.getElementById('rows').textContent = metaData('imagePixelModule').rows;
+        document.getElementById('columns').textContent = metaData('imagePixelModule').columns;
+        document.getElementById('pixelAspectRatio').textContent = metaData('imagePixelModule').pixelAspectRatio;
+        document.getElementById('bitsAllocated').textContent = metaData('imagePixelModule').bitsAllocated;
+        document.getElementById('bitsStored').textContent = metaData('imagePixelModule').bitsStored;
+        document.getElementById('highBit').textContent = metaData('imagePixelModule').highBit;
+        document.getElementById('pixelRepresentation').textContent = getPixelRepresentation(metaData('imagePixelModule').pixelRepresentation);
+        document.getElementById('windowCenter').textContent = metaData('voiLutModule').windowCenter;
+        document.getElementById('windowWidth').textContent = metaData('voiLutModule').windowWidth;
+        document.getElementById('rescaleIntercept').textContent = metaData('modalityLutModule').rescaleIntercept;
+        document.getElementById('rescaleSlope').textContent = metaData('modalityLutModule').rescaleSlope;
+        document.getElementById('minStoredPixelValue').textContent = metaData('imagePixelModule').smallestPixelValue;
+        document.getElementById('maxStoredPixelValue').textContent = metaData('imagePixelModule').largestPixelValue;
+        const end = new Date().getTime();
+        const time = end - start;
+        document.getElementById('totalTime').textContent = `${time}ms`;
 
       }, function(err) {
-        throw err;
         alert(err);
+        console.error(err);
       });
     } catch(err) {
-      throw err;
       alert(err);
+      console.error(err);
     }
   }
 
-  const elementZ = document.getElementById('nifti-image-z');
-  const elementX = document.getElementById('nifti-image-x');
-  const elementY = document.getElementById('nifti-image-y');
-
-  function downloadAndView(elements) {
+  function downloadAndView() {
     let url = document.getElementById('nifti-URL').value;
-    let imageIdObject = ImageId.fromURL(`nifti:${url}`);
 
-    loadAndViewImage(elementZ, `nifti:${imageIdObject.filePath}#z`);
-    loadAndViewImage(elementX, `nifti:${imageIdObject.filePath}#x`);
-    loadAndViewImage(elementY, `nifti:${imageIdObject.filePath}#y`);
+    loadAndViewImage(`nifti:${url}`);
   }
 
   cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
@@ -266,12 +271,11 @@
     loadProgress.textContent = `Image Load Progress: ${eventData.percentComplete}%`;
   });
 
-  cornerstone.enable(elementZ);
-  cornerstone.enable(elementX);
-  cornerstone.enable(elementY);
+  const element = document.getElementById('nifti-image');
+  cornerstone.enable(element);
 
   document.getElementById('download-and-view').addEventListener('click', function(e) {
-    downloadAndView([elementZ, elementX, elementY]);
+    downloadAndView();
   });
 
   const form = document.getElementById('form');
@@ -298,47 +302,6 @@
       downloadAndView();
     }
   });
-
-  document.querySelectorAll('.display-metadata').forEach(button => {
-    button.addEventListener('click', (e) => {
-      const imageId = e.currentTarget.previousElementSibling.dataset.imageId;
-
-      if (typeof imageId !== 'undefined') {
-        displayMetaData(imageId);
-      }
-    });
-  });
-
-  function displayMetaData (imageId) {
-    const metaData = (type) => cornerstone.metaData.get(type, imageId);
-
-    document.getElementById('columns').textContent = metaData('imagePixelModule').columns;
-    document.getElementById('rows').textContent = metaData('imagePixelModule').rows;
-    document.getElementById('numberOfFrames').textContent = metaData('multiFrameModule').numberOfFrames;
-    document.getElementById('pixelSpacing').textContent = metaData('imagePlaneModule').columnPixelSpacing.toFixed(2) + ' / ' + metaData('imagePlaneModule').rowPixelSpacing.toFixed(2);
-    document.getElementById('samplesPerPixel').textContent = metaData('imagePixelModule').samplesPerPixel;
-    document.getElementById('photometricInterpretation').textContent = metaData('imagePixelModule').photometricInterpretation;
-    document.getElementById('planarConfiguration').textContent = getPlanarConfiguration(metaData('imagePixelModule').planarConfiguration);
-    document.getElementById('pixelAspectRatio').textContent = metaData('imagePixelModule').pixelAspectRatio;
-    document.getElementById('bitsAllocated').textContent = metaData('imagePixelModule').bitsAllocated;
-    document.getElementById('bitsStored').textContent = metaData('imagePixelModule').bitsStored;
-    document.getElementById('highBit').textContent = metaData('imagePixelModule').highBit;
-    document.getElementById('pixelRepresentation').textContent = getPixelRepresentation(metaData('imagePixelModule').pixelRepresentation);
-    document.getElementById('windowCenter').textContent = metaData('voiLutModule').windowCenter;
-    document.getElementById('windowWidth').textContent = metaData('voiLutModule').windowWidth;
-    document.getElementById('rescaleIntercept').textContent = metaData('modalityLutModule').rescaleIntercept;
-    document.getElementById('rescaleSlope').textContent = metaData('modalityLutModule').rescaleSlope;
-    document.getElementById('minStoredPixelValue').textContent = metaData('imagePixelModule').smallestPixelValue;
-    document.getElementById('maxStoredPixelValue').textContent = metaData('imagePixelModule').largestPixelValue;
-
-    function getPixelRepresentation(value) {
-      return value === '0000H' ? '(unsigned)' : '(signed)';
-    }
-
-    function getPlanarConfiguration(value) {
-      return (typeof value === 'undefined' ? 'unspecified' : (value === 0 ? '(pixel)' : '(plane)'));
-    }
-  }
 
   function getParameterByName (name) {
     const url = window.location.href;

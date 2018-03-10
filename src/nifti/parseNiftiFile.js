@@ -26,6 +26,7 @@ export function parseNiftiHeader (fileData) {
 
   // meta data related to the image itself
   const voxelLength = header.dims.slice(1, 4);
+  const timeSlices = header.dims[0] > 3 ? header.dims[4] : 1;
   const dataType = {
     TypedArrayConstructor: niftiDatatypeCodeToTypedArray(nifti, header.datatypeCode),
     samplesPerPixel: getSamplesPerPixel(header.dims),
@@ -43,6 +44,7 @@ export function parseNiftiHeader (fileData) {
     windowMaximumValue,
     isWindowInfoAbsent,
     voxelLength,
+    timeSlices,
     dataType,
     pixelSpacing,
     orientationMatrix,

@@ -68,9 +68,9 @@ export default class Volume {
   [changeVoxelStorageOrder] ([x, y, z]) {
     // changes the order in which voxel data is stored
     if (this.hasImageData) {
-      this.imageDataNDarray = this.imageDataNDarray.transpose(x, y, z);
+      this.imageDataNDarray = this.imageDataNDarray.transpose(x, y, z, 3);
       if (this.floatImageDataNDarray) {
-        this.floatImageDataNDarray = this.floatImageDataNDarray.transpose(x, y, z);
+        this.floatImageDataNDarray = this.floatImageDataNDarray.transpose(x, y, z, 3);
       }
     }
 
@@ -161,9 +161,9 @@ export default class Volume {
 
 
     if (this.hasImageData) {
-      this.imageDataNDarray = this.imageDataNDarray.step(...steps);
+      this.imageDataNDarray = this.imageDataNDarray.step(...steps, 1);
       if (this.floatImageDataNDarray) {
-        this.floatImageDataNDarray = this.floatImageDataNDarray.step(...steps);
+        this.floatImageDataNDarray = this.floatImageDataNDarray.step(...steps, 1);
       }
     }
   }

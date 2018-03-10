@@ -22,13 +22,15 @@ export default function convertFloatDataToInteger (imageDataView, metaData) {
   );
 
   // converts from float to int, scaling each with a linear linearTransformation
-  for (let k = 0; k < imageDataView.shape[2]; k++) {
-    for (let j = 0; j < imageDataView.shape[1]; j++) {
-      for (let i = 0; i < imageDataView.shape[0]; i++) {
-        let value = imageDataView.get(i, j, k);
+  for (let l = 0; l < imageDataView.shape[3]; l++) {
+    for (let k = 0; k < imageDataView.shape[2]; k++) {
+      for (let j = 0; j < imageDataView.shape[1]; j++) {
+        for (let i = 0; i < imageDataView.shape[0]; i++) {
+          let value = imageDataView.get(i, j, k, l);
 
-        value = linearTransformation(value, slope, intercept);
-        convertedImageDataView.set(i, j, k, Math.floor(value));
+          value = linearTransformation(value, slope, intercept);
+          convertedImageDataView.set(i, j, k, l, Math.floor(value));
+        }
       }
     }
   }

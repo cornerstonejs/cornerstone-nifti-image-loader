@@ -22,6 +22,14 @@ export function metaDataProvider (type, imageId) {
   const imageIdObject = ImageId.fromURL(imageId);
 
   switch (type) {
+  case 'functional': {
+    const frameOfReferenceUID = imageIdObject.filePath;
+
+    return {
+      frameOfReferenceUID,
+      timeSlices: metaData.timeSlices
+    };
+  }
   case 'imagePlane':
   case 'imagePlaneModule': {
     const frameOfReferenceUID = imageIdObject.filePath;

@@ -139,10 +139,16 @@ export default class VolumeAcquisition {
 
     Object.assign(metaData, moreMetaData);
     const dimensions = metaData.voxelLength;
-    const strides = [1, dimensions[0], dimensions[0] * dimensions[1]];
+    const timeSlices = metaData.timeSlices;
+    const strides = [
+      1,
+      dimensions[0],
+      dimensions[0] * dimensions[1],
+      // each time slice has a stride of x*y*z
+      dimensions[0] * dimensions[1] * dimensions[2]];
 
     // create an ndarray of the whole data
-    const imageDataNDarray = ndarray(imageData, dimensions, strides);
+    const imageDataNDarray = ndarray(imageData, [...dimensions, timeSlices], strides);
 
     // finds the smallest and largest voxel value
     const minMax = minMaxNDarray(imageDataNDarray);
