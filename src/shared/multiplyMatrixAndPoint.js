@@ -1,3 +1,10 @@
+/**
+ * multiplyMatrixAndPoint - Returns the multiplication of a matrix with a point.
+ *
+ * @param  {Array} matrix The 4D matrix to multiply the point.
+ * @param  {Array} point  The 4D point being multiplied.
+ * @return {Array}        The resulting 4D point.
+ */
 export default function multiplyMatrixAndPoint (matrix, point) {
   // simple variable names to each part of the matrix, a column and row number
   const c0r0 = matrix[0][0],

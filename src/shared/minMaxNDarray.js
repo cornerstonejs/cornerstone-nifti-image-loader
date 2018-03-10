@@ -5,7 +5,7 @@
  */
 
 /**
- * minMaxNDarray - Calculates the minimum and maximum value in an ndarray. This
+ * minMaxNDarray - Calculates the minimum and maximum value in a 3D ndarray. This
  * is necessary to provide cornerstone the min and max values of the array of
  * values consisting of the image we're passing to it.
  *
