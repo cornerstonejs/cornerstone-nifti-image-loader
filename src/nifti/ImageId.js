@@ -4,12 +4,13 @@
  * (.fromURL) and serializing it (.url).
  */
 export default class ImageId {
-  constructor (filePath, { dimension, index }) {
+  constructor (filePath, { dimension, index }, timePoint) {
     this.filePath = filePath;
     this.slice = {
       dimension,
       index
     };
+    this.timePoint = timePoint;
   }
 
   get url () {
@@ -30,6 +31,10 @@ export default class ImageId {
       url += this.slice.index;
     }
 
+    if (isDefined(this.timePoint)) {
+      url += `,t-${this.timePoint}`;
+    }
+
     return url;
   }
 
@@ -42,7 +47,7 @@ export default class ImageId {
     // - '([xyz])' is the sliceDimension
     // - '([\d]+)' is the sliceIndex
 
-    const imageIdRegex = /^nifti:([^#]+)(?:#(?:(?=[xyz])(?:([xyz])(?:(?=-[\d]+)-([\d]+))?)|(?![xyz])([\d]+)))?$/;
+    const imageIdRegex = /^nifti:([^#]+)(?:#(?:(?=[xyz])(?:([xyz])(?:(?=-[\d]+)-([\d]+))?(?:,t-(\d+))?)|(?![xyz])([\d]+)))?$/;
     const regexResults = imageIdRegex.exec(url);
 
     if (!regexResults) {
@@ -50,12 +55,13 @@ export default class ImageId {
     }
     const filePath = regexResults && regexResults[1];
     const dimension = regexResults && regexResults[2] || 'z';
-    const index = regexResults && parseInt(regexResults[3] || regexResults[4], 0) || 0;
+    const index = regexResults && parseInt(regexResults[3] || regexResults[5], 0) || 0;
+    const timePoint = regexResults && regexResults[4] && parseInt(regexResults[4], 0) || 0;
 
     return new ImageId(filePath, {
       dimension,
       index
-    });
+    }, timePoint);
   }
 }
 
