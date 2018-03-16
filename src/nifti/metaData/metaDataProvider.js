@@ -23,10 +23,8 @@ export function metaDataProvider (type, imageId) {
 
   switch (type) {
   case 'functional': {
-    const frameOfReferenceUID = imageIdObject.filePath;
-
     return {
-      frameOfReferenceUID,
+      frameOfReferenceUID: imageIdObject.filePath,
       timeSlices: metaData.timeSlices
     };
   }
