@@ -30,6 +30,7 @@ export default class VolumeAcquisition {
 
   constructor () {
     this.volumeCache = new VolumeCache();
+    this.volumePromises = {};
     this.wholeFileFetcher = new FileFetcher({});
     this.headerOnlyFetcher = new FileFetcher({
       isFirstBytesOnly: true,
@@ -58,6 +59,14 @@ export default class VolumeAcquisition {
   }
 
   acquire (imageIdObject) {
+    // checks if there already is a promise to fetch the whole volume (with data)
+    const cachedVolumePromise = this.volumePromises[imageIdObject.filePath];
+
+    if (cachedVolumePromise && cachedVolumePromise.wholeFilePromise) {
+      return cachedVolumePromise.wholeFilePromise;
+    }
+
+    // if no one has requested this volume yet, we create a promise to acquire it
     const volumeAcquiredPromise = new Promise((resolve, reject) => {
       const cachedVolume = this.volumeCache.get(imageIdObject);
 
@@ -89,10 +98,24 @@ export default class VolumeAcquisition {
         catch(reject);
     });
 
+    // save this promise to the promise cache
+    this.volumePromises[imageIdObject.filePath] = this.volumePromises[imageIdObject.filePath] || {};
+    this.volumePromises[imageIdObject.filePath].wholeFilePromise = volumeAcquiredPromise;
+
     return volumeAcquiredPromise;
   }
 
   acquireHeaderOnly (imageIdObject, isRangeRead = true) {
+    // checks if there already is a promise to fetch the whole volume
+    // (without the data)
+    const cachedVolumePromise = this.volumePromises[imageIdObject.filePath];
+
+    if (cachedVolumePromise) {
+      return cachedVolumePromise.headerOnlyPromise || cachedVolumePromise.wholeFilePromise;
+    }
+
+    // if no one has requested the header of this volume yet, we create a
+    // promise to acquire it
     const volumeHeaderAcquiredPromise = new Promise((resolve, reject) => {
       const cachedVolume = this.volumeCache.get(imageIdObject);
 
@@ -118,6 +141,10 @@ export default class VolumeAcquisition {
         then((data) => resolve(data)).
         catch(reject);
     });
+
+    // save this promise to the promise cache
+    this.volumePromises[imageIdObject.filePath] = this.volumePromises[imageIdObject.filePath] || {};
+    this.volumePromises[imageIdObject.filePath].headerOnlyPromise = volumeHeaderAcquiredPromise;
 
     return volumeHeaderAcquiredPromise;
   }
