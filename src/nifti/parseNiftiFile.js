@@ -1,4 +1,5 @@
 import { external } from '../externalModules.js';
+import decodeNiFTIBigEndian from '../shared/niftiBigEndianDecoder.js';
 
 export function parseNiftiHeader (fileData) {
   const nifti = external.niftiReader;
@@ -61,8 +62,14 @@ export function parseNiftiFile (fileData, metaData) {
   }
 
   const TypedArrayConstructor = metaData.dataType.TypedArrayConstructor;
+  const arraybuffer = nifti.readImage(metaData.header, fileData);
+
   // reads the image data using nifti-reader-js and puts it in a typed array
-  const imageData = new TypedArrayConstructor(nifti.readImage(metaData.header, fileData));
+  let imageData = new TypedArrayConstructor(arraybuffer);
+
+  if (!metaData.header.littleEndian) {
+    imageData = decodeNiFTIBigEndian(metaData.header.datatypeCode, imageData);
+  }
 
   // determines the meta data that depends on the image data
   return {
