@@ -89,7 +89,7 @@ function swap2Bytes (val) {
 
 // Swap 4 byte, 32 bit values:
 function swap4Bytes (val) {
-  (
+  return (
     (((val) >> 24) & 0x000000FF) | (((val) >> 8) & 0x0000FF00) |
     (((val) << 8) & 0x00FF0000) | (((val) << 24) & 0xFF000000)
   );
@@ -97,7 +97,7 @@ function swap4Bytes (val) {
 
 // Swap 8 byte, 64 bit values:
 function swap8Bytes (val) {
-  (
+  return (
     (((val) >> 56) & 0x00000000000000FF) | (((val) >> 40) & 0x000000000000FF00) |
     (((val) >> 24) & 0x0000000000FF0000) | (((val) >> 8) & 0x00000000FF000000) |
     (((val) << 8) & 0x000000FF00000000) | (((val) << 24) & 0x0000FF0000000000) |
