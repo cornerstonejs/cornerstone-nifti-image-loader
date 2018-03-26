@@ -137,12 +137,25 @@ function getOrientationMatrix (header) {
       header.pixDims[0]);
   }
 
-  // if there is no orientation in the file, return an invalid matrix
-  // so cornerstone understands this file has no orientation info
+  // if there is no orientation in the file, assemble a matrix with the pixDims
+  // values on the main diagonal (for compatibility with the Analyze format)
+  // and an origin in the center of the image
+  const scale = {
+    x: header.pixDims[1],
+    y: header.pixDims[2],
+    z: header.pixDims[3]
+  };
+
+  const origin = {
+    x: -(scale.x * header.dims[1]) / 2,
+    y: -(scale.y * header.dims[2]) / 2,
+    z: -(scale.z * header.dims[3]) / 2
+  };
+
   return [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
+    [scale.x, 0, 0, origin.x],
+    [0, scale.y, 0, origin.y],
+    [0, 0, scale.z, origin.z],
     [0, 0, 0, 1]
   ];
 }
