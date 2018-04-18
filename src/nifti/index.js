@@ -5,13 +5,17 @@ import ImageId from './ImageId.js';
 import augmentPromise from './augmentPromise.js';
 import cornerstoneEvents from './cornerstoneEvents.js';
 
+const options = {
+  headers: {}
+};
+
 const nifti = {
   loadImage (imageId) {
     let promise;
 
     try {
       const imageIdObject = ImageId.fromURL(imageId);
-      const volumeAcquisition = VolumeAcquisition.getInstance();
+      const volumeAcquisition = VolumeAcquisition.getInstance(options.headers);
 
       cornerstoneEvents.imageLoadStart(imageIdObject);
 
@@ -45,7 +49,7 @@ const nifti = {
 
     try {
       const imageIdObject = ImageId.fromURL(imageId);
-      const volumeAcquisition = VolumeAcquisition.getInstance();
+      const volumeAcquisition = VolumeAcquisition.getInstance(options.headers);
 
       promise = volumeAcquisition.acquireHeaderOnly(imageIdObject, isRangeRead).
         then((volume) => volume.slice(imageIdObject)).
@@ -76,6 +80,10 @@ const nifti = {
   register (cornerstone) {
     cornerstone.registerImageLoader('nifti', this.loadImage);
     cornerstone.metaData.addProvider(metaDataProvider);
+  },
+
+  configure (loaderOptions) {
+    Object.assign(options, loaderOptions);
   }
 };
 

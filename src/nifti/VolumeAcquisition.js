@@ -28,12 +28,15 @@ const cacheVolume = Symbol('cacheVolume');
  */
 export default class VolumeAcquisition {
 
-  constructor () {
+  constructor (httpHeaders = {}) {
     this.volumeCache = new VolumeCache();
     this.volumePromises = {};
-    this.wholeFileFetcher = new FileFetcher({});
+    this.wholeFileFetcher = new FileFetcher({
+      headers: httpHeaders
+    });
     this.headerOnlyFetcher = new FileFetcher({
       isFirstBytesOnly: true,
+      headers: httpHeaders,
       beforeSend: (xhr) => xhr.setRequestHeader('Range', 'bytes=0-10240'),
       onHeadersReceived: (xhr, options, params) => {
         // we wanted only the first bytes, but the server is sending the whole
@@ -50,9 +53,9 @@ export default class VolumeAcquisition {
     });
   }
 
-  static getInstance () {
+  static getInstance (httpHeaders) {
     if (!VolumeAcquisition.instance) {
-      VolumeAcquisition.instance = new VolumeAcquisition();
+      VolumeAcquisition.instance = new VolumeAcquisition(httpHeaders);
     }
 
     return VolumeAcquisition.instance;

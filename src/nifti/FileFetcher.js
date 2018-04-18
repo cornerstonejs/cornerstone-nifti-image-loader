@@ -8,12 +8,14 @@ export default class FileFetcher {
     method = 'GET',
     responseType = 'arraybuffer',
     beforeSend = noop,
+    headers = {},
     onHeadersReceived = noop
   } = {}) {
     this.options = {
       method,
       responseType,
       beforeSend,
+      headers,
       onHeadersReceived
     };
     this.promisesCache = {};
@@ -43,6 +45,10 @@ export default class FileFetcher {
         if (typeof this.options.beforeSend === 'function') {
           this.options.beforeSend(request, imageIdObject.url);
         }
+
+        Object.keys(this.options.headers).forEach((key) => {
+          request.setRequestHeader(key, this.options.headers[key]);
+        });
 
         request.addEventListener('readystatechange', readyStateChange(this.options, eventParams));
         request.addEventListener('progress', progress(imageIdObject.filePath, imageIdObject.url, this.options, eventParams));
