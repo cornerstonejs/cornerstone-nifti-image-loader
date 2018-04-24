@@ -26,13 +26,14 @@ module.exports = {
   frameworks: ['mocha'],
   reporters: ['progress', 'coverage'],
   files: [
-    'dist/cornerstoneNIFTIImageLoader.js',
     'node_modules/promise-polyfill/promise.min.js',
-    'node_modules/cornerstone-core/dist/cornerstone.js',
+    'examples/cornerstone.js',
+    'dist/cornerstoneNIFTIImageLoader.js',
     'test/**/*_test.js',
     {
       pattern: 'test/data/*',
-      included: false
+      included: false,
+      served: true
     },
     {
       pattern: 'dist/*',

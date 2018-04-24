@@ -1,8 +1,11 @@
 /* eslint import/extensions: 0 */
 import { expect } from 'chai';
 import niftiImageLoader from '../src/nifti/index.js';
+import { external } from '../src/externalModules.js';
 
-const url = 'nifti:///base/test/data/';
+external.cornerstone = window.cornerstone;
+
+const url = 'nifti:base/test/data/';
 
 describe('loadImage', function () {
   it('should properly load an uncompressed file (.nii)', function (done) {
