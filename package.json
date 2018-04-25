@@ -1,6 +1,6 @@
 {
   "name": "cornerstone-nifti-image-loader",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Cornerstone ImageLoader for NIfTI",
   "keywords": [
     "NIfTI",

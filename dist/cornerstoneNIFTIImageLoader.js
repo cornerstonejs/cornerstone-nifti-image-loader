@@ -1,4 +1,4 @@
-/*! cornerstone-nifti-image-loader - 0.0.1 - 2018-04-23 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
+/*! cornerstone-nifti-image-loader - 1.0.0 - 2018-04-24 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
