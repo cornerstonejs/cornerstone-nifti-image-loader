@@ -130,6 +130,10 @@ function readyStateChange (options, params) {
       }
     }
 
+    if (this.readyState === 3) {
+      console.log(`Read response of size ${this.responseText.length}`);
+    }
+
     if (this.readyState === XHR_DONE) {
       if ([200, 206].includes(this.status)) {
         params.deferred.resolve(this.response);

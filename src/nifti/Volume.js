@@ -10,13 +10,17 @@ const convertRAStoLPS = Symbol('convertRAStoLPS');
 export default class Volume {
   constructor (imageIdObject, metaData, imageDataNDarray, floatImageDataNDarray) {
     this.imageIdObject = imageIdObject;
-    this.metaData = metaData;
-    this.imageDataNDarray = imageDataNDarray;
-    this.floatImageDataNDarray = floatImageDataNDarray;
+    this.isStreaming = arguments.length < 3;
 
-    this[ensureVoxelStorageInXYZ]();
-    this[convertToNeurologicalView]();
-    this[convertRAStoLPS]();
+    if (!this.isStreaming) {
+      this.metaData = metaData;
+      this.imageDataNDarray = imageDataNDarray;
+      this.floatImageDataNDarray = floatImageDataNDarray;
+
+      this[ensureVoxelStorageInXYZ]();
+      this[convertToNeurologicalView]();
+      this[convertRAStoLPS]();
+    }
   }
 
 
