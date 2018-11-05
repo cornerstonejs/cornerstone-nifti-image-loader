@@ -1,8 +1,6 @@
 import Volume from './Volume.js';
 import VolumeCache from './VolumeCache.js';
-import FileFetcher from './FileFetcher.js';
-import decompressNiftiData from './decompressNiftiData.js';
-import { parseNiftiHeader, parseNiftiFile } from './parseNiftiFile.js';
+import { parseNiftiFile } from './parseNiftiFile.js';
 import convertFloatDataToInteger from './convertFloatDataToInteger.js';
 import ImageId from './ImageId.js';
 import minMaxNDarray from '../shared/minMaxNDarray.js';
@@ -13,8 +11,6 @@ import VolumeTimepointFileFetcher from './VolumeTimepointFileFetcher';
 import ndarray from 'ndarray';
 
 // private methods symbols
-const decompress = Symbol('decompress');
-const readMetaData = Symbol('readMetaData');
 const readImageData = Symbol('readImageData');
 const determineImageDependentMetaData = Symbol('determineImageDependentMetaData');
 const transformImageData = Symbol('transformImageData');
@@ -32,27 +28,8 @@ export default class VolumeAcquisitionStreamer {
 
   constructor (httpHeaders = {}) {
     this.volumeCache = new VolumeCache();
-    this.volumePromises = {};
-    this.wholeFileFetcher = new VolumeTimepointFileFetcher({
-      headers: httpHeaders
-    });
-    this.headerOnlyFetcher = new FileFetcher({
-      isFirstBytesOnly: true,
-      headers: httpHeaders,
-      beforeSend: (xhr) => xhr.setRequestHeader('Range', 'bytes=0-10240'),
-      onHeadersReceived: (xhr, options, params) => {
-        // we wanted only the first bytes, but the server is sending the whole
-        // file (status 200 instead of 206)... then, to avoid fetching
-        // the whole file twice, we "copy" this fetch promise to the
-        // wholeFileFetcher
-        if (xhr.status === 200) {
-          const imageIdObject = ImageId.fromURL(params.imageId);
-          const promiseCacheEntry = this.headerOnlyFetcher.getFetchPromiseFromCache(imageIdObject);
-
-          this.wholeFileFetcher.addFetchPromiseToCache(promiseCacheEntry.promise, imageIdObject);
-        }
-      }
-    });
+    this.volumeFetchers = {};
+    this.httpHeaders = httpHeaders;
   }
 
   static getInstance (httpHeaders) {
@@ -63,31 +40,29 @@ export default class VolumeAcquisitionStreamer {
     return VolumeAcquisitionStreamer.instance;
   }
 
-  acquire (imageIdObject) {
-    // checks if there already is a promise to fetch the whole volume (with data)
-    const cachedVolumePromise = this.volumePromises[imageIdObject.filePath];
+  acquireTimepoint(imageIdObject) {
 
-    if (cachedVolumePromise && cachedVolumePromise.wholeFilePromise) {
-      return cachedVolumePromise.wholeFilePromise;
+    // if we have the timepoint already generated, return it immediately.
+    const cachedVolume = this.volumeCache.getTimepoint(imageIdObject, imageIdObject.timePoint);
+
+    if (cachedVolume && cachedVolume.hasImageData) {
+      Promise.resolve(cachedVolume);
+
+      return;
+    }
+
+    const fetcherData = this.getFetcherData(imageIdObject);
+    
+    if (fetcherData.timePointPromises[imageIdObject.timePoint]) {
+      return fetcherData.timePointPromises[imageIdObject.timePoint];
     }
 
     // if no one has requested this volume yet, we create a promise to acquire it
     const volumeAcquiredPromise = new Promise((resolve, reject) => {
-      const cachedVolume = this.volumeCache.get(imageIdObject);
 
-      if (cachedVolume && cachedVolume.hasImageData) {
-        resolve(cachedVolume);
-
-        return;
-      }
-
-      const fileFetchedPromise = this.wholeFileFetcher.fetch(imageIdObject);
+      const fileFetchedPromise = fetcherData.volumeFetcher.fetchTimepoint(imageIdObject.timePoint);
 
       fileFetchedPromise.
-        // decompress (if compressed) the file raw data
-        then((data) => this[decompress](data, imageIdObject)).
-        // gather meta data of the file/volume
-        then((data) => this[readMetaData](data)).
         // reads the image data and puts it in an ndarray (to be sliced)
         then((data) => this[readImageData](data)).
         // transforms the image data (eg float to int, in case)
@@ -103,75 +78,22 @@ export default class VolumeAcquisitionStreamer {
         catch(reject);
     });
 
-    // save this promise to the promise cache
-    this.volumePromises[imageIdObject.filePath] = this.volumePromises[imageIdObject.filePath] || {};
-    this.volumePromises[imageIdObject.filePath].wholeFilePromise = volumeAcquiredPromise;
-
-    return volumeAcquiredPromise;
-  }
-
-  acquireTimepoint (imageIdObject) {
-    // checks if there already is a promise to fetch the volume timepoint (with data)
-    const cachedVolumePromise = this.volumePromises[`${imageIdObject.filePath}#t-${imageIdObject.timePoint}`];
-
-    if (cachedVolumePromise && cachedVolumePromise.wholeFilePromise) {
-      return cachedVolumePromise.wholeFilePromise;
-    }
-
-    // if no one has requested this volume yet, we create a promise to acquire it
-    const volumeAcquiredPromise = new Promise((resolve, reject) => {
-      const cachedVolume = this.volumeCache.get(imageIdObject);
-
-      if (cachedVolume && cachedVolume.hasImageData) {
-        resolve(cachedVolume);
-
-        return;
-      }
-
-      const fileFetchedPromise = this.wholeFileFetcher.fetchTimepoint(imageIdObject);
-
-      fileFetchedPromise.
-        // decompress (if compressed) the file raw data
-        // Zaid: should be already decompressed by the FileFetcher
-        // then((data) => this[decompress](data, imageIdObject)). <-- This should be done in the volume streamer. Uncompress on the fly!
-        // gather meta data of the file/volume
-        // Zaid: we have already read the metadata in the file fetcher to calculate the volume size
-        // then((data) => this[readMetaData](data)).
-        // reads the image data and puts it in an ndarray (to be sliced)
-        then((data) => this[readImageData](data)).
-        // transforms the image data (eg float to int, in case)
-        then((data) => this[transformImageData](data)).
-        // gather meta data that depends on the image data (eg min/max, wc/ww)
-        then((data) => this[determineImageDependentMetaData](data)).
-        // creates the volume: metadata + image data
-        then((data) => this[createVolume](data, imageIdObject)).
-        // adds the volume to the cache
-        then((data) => this[cacheVolume](data, imageIdObject)).
-        // fulfills the volumeAcquiredPromise
-        then((data) => resolve(data)).
-        catch(reject);
-    });
-
-    // save this promise to the promise cache
-    this.volumePromises[imageIdObject.filePath] = this.volumePromises[imageIdObject.filePath] || {};
-    this.volumePromises[imageIdObject.filePath].wholeFilePromise = volumeAcquiredPromise;
+    fetcherData.timePointPromises[imageIdObject.timePoint] = volumeAcquiredPromise;
 
     return volumeAcquiredPromise;
   }
 
   acquireHeaderOnly (imageIdObject, isRangeRead = true) {
-    // checks if there already is a promise to fetch the whole volume
-    // (without the data)
-    const cachedVolumePromise = this.volumePromises[imageIdObject.filePath];
+    const fetcherData = this.getFetcherData(imageIdObject);
 
-    if (cachedVolumePromise) {
-      return cachedVolumePromise.headerOnlyPromise || cachedVolumePromise.wholeFilePromise;
+    if (fetcherData.headerPromise) {
+      return fetcherData.headerPromise;
     }
 
     // if no one has requested the header of this volume yet, we create a
     // promise to acquire it
     const volumeHeaderAcquiredPromise = new Promise((resolve, reject) => {
-      const cachedVolume = this.volumeCache.get(imageIdObject);
+      const cachedVolume = this.volumeCache.getTimepoint(imageIdObject, imageIdObject.timePoint);
 
       if (cachedVolume) {
         resolve(cachedVolume);
@@ -179,14 +101,10 @@ export default class VolumeAcquisitionStreamer {
         return;
       }
 
-      const fetcher = isRangeRead ? this.headerOnlyFetcher : this.wholeFileFetcher;
-      const fileFetchedPromise = fetcher.fetch(imageIdObject);
+      const fetcher = fetcherData.volumeFetcher;
+      const fileFetchedPromise = fetcher.getHeaderPromise();
 
       fileFetchedPromise.
-        // decompress (if compressed) the file raw data
-        then((data) => this[decompress](data, imageIdObject)).
-        // gather meta data of the file/volume
-        then((data) => this[readMetaData](data)).
         // creates the volume: metadata + image data
         then((data) => this[createVolume](data, imageIdObject)).
         // adds the volume to the cache
@@ -197,28 +115,15 @@ export default class VolumeAcquisitionStreamer {
     });
 
     // save this promise to the promise cache
-    this.volumePromises[imageIdObject.filePath] = this.volumePromises[imageIdObject.filePath] || {};
-    this.volumePromises[imageIdObject.filePath].headerOnlyPromise = volumeHeaderAcquiredPromise;
+    this.volumeFetchers[imageIdObject.filePath] = this.volumeFetchers[imageIdObject.filePath] || {};
+    this.volumeFetchers[imageIdObject.filePath].headerOnlyPromise = volumeHeaderAcquiredPromise;
 
     return volumeHeaderAcquiredPromise;
   }
 
-  // private methods
-  [decompress] (fileRawData, imageIdObject) {
-    return decompressNiftiData(fileRawData, imageIdObject);
-  }
-
-  [readMetaData] (decompressedFileData) {
-    return {
-      decompressedFileData,
-      metaData: parseNiftiHeader(decompressedFileData)
-    };
-  }
-
   [readImageData]({ headerData, metaData, volumeData }) {
-    metaData = metaData.metaData;
-    metaData.timeSlices = 1;
-    metaData.header.dims[4] = 1;
+    // metaData.timeSlices = 1;
+    // metaData.header.dims[4] = 1;
 
     const decompressedFileData = unInt8ArrayConcat(headerData, volumeData);
     const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData.buffer, metaData);
@@ -282,7 +187,7 @@ export default class VolumeAcquisitionStreamer {
     };
   }
 
-  [createVolume]({ metaData, imageDataNDarray }, imageIdObject) {
+  [createVolume] ({ metaData, imageDataNDarray }, imageIdObject) {
     const timePointImageIdObject = new ImageId(imageIdObject.filePath, imageIdObject.slice, 0);
 
     return new Volume(timePointImageIdObject, metaData, imageDataNDarray, metaData.floatImageDataNDarray);
@@ -292,6 +197,20 @@ export default class VolumeAcquisitionStreamer {
     this.volumeCache.add(imageIdObject, volume);
 
     return volume;
+  }
+
+  getFetcherData (imageIdObject) {
+    // checks if there is a volume fetcher that may have the data availabile, if not, create and cache.
+    this.volumeFetchers[`${imageIdObject.filePath}`] = this.volumeFetchers[`${imageIdObject.filePath}`] ||
+      {
+        headerPromise: null,
+        timePointPromises: [],
+        volumeFetcher: new VolumeTimepointFileFetcher(imageIdObject, {
+          headers: this.httpHeaders
+        })
+      };
+
+    return this.volumeFetchers[`${imageIdObject.filePath}`];
   }
 }
 

@@ -50,7 +50,7 @@ const nifti = {
 
     try {
       const imageIdObject = ImageId.fromURL(imageId);
-      const streamer = new VolumeAcquisitionStreamer.getInstance(options.headers);
+      const streamer = VolumeAcquisitionStreamer.getInstance(options.headers);
 
       cornerstoneEvents.imageLoadStart(imageIdObject);
 
@@ -84,7 +84,7 @@ const nifti = {
 
     try {
       const imageIdObject = ImageId.fromURL(imageId);
-      const volumeAcquisition = VolumeAcquisition.getInstance(options.headers);
+      const volumeAcquisition = VolumeAcquisitionStreamer.getInstance(options.headers);
 
       promise = volumeAcquisition.acquireHeaderOnly(imageIdObject, isRangeRead).
         then((volume) => volume.slice(imageIdObject)).
@@ -113,7 +113,7 @@ const nifti = {
   ImageId,
 
   register (cornerstone) {
-    //cornerstone.registerImageLoader('nifti', this.loadImage);
+    // cornerstone.registerImageLoader('nifti', this.loadImage);
     cornerstone.registerImageLoader('nifti', this.loadVolumeTimepoint);
     cornerstone.metaData.addProvider(metaDataProvider);
   },

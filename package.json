@@ -79,6 +79,7 @@
   },
   "dependencies": {
     "ndarray": "^1.0.18",
-    "nifti-reader-js": "^0.5.4"
+    "nifti-reader-js": "^0.5.4",
+    "pako": "^1.0.6"
   }
 }
