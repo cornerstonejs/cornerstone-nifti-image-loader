@@ -39,15 +39,12 @@ export default class VolumeTimepointFileFetcher {
         this.getHeaderPromise().then((header) => {
           const volumeTimepointLength = VolumeTimepointFileFetcher.getVolumeTimepointDataLength(header);
           const offset = this.volumeData.headerOffset + (timepoint * volumeTimepointLength);
-          const timepointMetadata = parseNiftiHeader(header.headerData.buffer);
-
-          timepointMetadata.timeSlices = 1;
 
           this.getBufferPromise(offset, volumeTimepointLength).then((volumeData) => {
             resolve({
               headerData: header.headerData,
               volumeData,
-              metaData: timepointMetadata
+              metaData: header.metaData
             });
           }).catch(reject);
         });
@@ -101,6 +98,7 @@ export default class VolumeTimepointFileFetcher {
   }
 
   getHeaderPromise () {
+    this.ensureStreaming(this.imageId);
     const imageData = this.volumeData;
 
     if (imageData.headerDataReady) {
@@ -111,6 +109,7 @@ export default class VolumeTimepointFileFetcher {
   }
 
   getBufferPromise (offset, length) {
+    this.ensureStreaming(this.imageId);
     const fileStreamPromise = new Promise((resolve, reject) => {
       if (this.volumeData.dataStreamedLength >= length) {
         resolve(this.volumeData.buffer.slice(offset, offset + length));

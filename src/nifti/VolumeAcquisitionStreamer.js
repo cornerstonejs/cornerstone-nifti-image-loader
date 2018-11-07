@@ -122,15 +122,14 @@ export default class VolumeAcquisitionStreamer {
   }
 
   [readImageData]({ headerData, metaData, volumeData }) {
-    // metaData.timeSlices = 1;
-    // metaData.header.dims[4] = 1;
 
     const decompressedFileData = unInt8ArrayConcat(headerData, volumeData);
     const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData.buffer, metaData);
 
     Object.assign(metaData, moreMetaData);
     const dimensions = metaData.voxelLength;
-    const timeSlices = metaData.timeSlices;
+    // only 1 timeSlice
+    const timeSlices =1;
     const strides = [
       1,
       dimensions[0],
