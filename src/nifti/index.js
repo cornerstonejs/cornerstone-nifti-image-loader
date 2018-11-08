@@ -112,9 +112,18 @@ const nifti = {
 
   ImageId,
 
+  streamingMode: false,
+
+  cornerstoneLoader(imageId) {
+    if (this.streamingMode) {
+      return this.loadVolumeTimepoint(imageId);
+    }
+
+    return this.loadImage(imageId);
+  },
+
   register (cornerstone) {
-    // cornerstone.registerImageLoader('nifti', this.loadImage);
-    cornerstone.registerImageLoader('nifti', this.loadVolumeTimepoint);
+    cornerstone.registerImageLoader('nifti', (imageId) => this.cornerstoneLoader(imageId, this));
     cornerstone.metaData.addProvider(metaDataProvider);
   },
 

@@ -1,4 +1,4 @@
-/*! cornerstone-nifti-image-loader - 1.0.0 - 2018-11-07 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
+/*! cornerstone-nifti-image-loader - 1.0.0 - 2018-11-01 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -82,7 +82,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	  document.getElementsByTagName("head")[0].appendChild(el);
 /******/ 	}());
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 41);
+/******/ 	return __webpack_require__(__webpack_require__.s = 43);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -124,11 +124,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.external = undefined;
 
-var _niftiReaderJs = __webpack_require__(44);
+var _niftiReaderJs = __webpack_require__(46);
 
 var _niftiReaderJs2 = _interopRequireDefault(_niftiReaderJs);
 
-var _registerLoaders = __webpack_require__(54);
+var _registerLoaders = __webpack_require__(56);
 
 var _registerLoaders2 = _interopRequireDefault(_registerLoaders);
 
@@ -542,8 +542,8 @@ var util = __webpack_require__(7);
 util.inherits = __webpack_require__(3);
 /*</replacement>*/
 
-var Readable = __webpack_require__(34);
-var Writable = __webpack_require__(38);
+var Readable = __webpack_require__(36);
+var Writable = __webpack_require__(40);
 
 util.inherits(Duplex, Readable);
 
@@ -635,7 +635,7 @@ function forEach(xs, f) {
 
 var base64 = __webpack_require__(71)
 var ieee754 = __webpack_require__(72)
-var isArray = __webpack_require__(30)
+var isArray = __webpack_require__(32)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -2632,8 +2632,8 @@ function isDefined(value) {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var iota = __webpack_require__(61)
-var isBuffer = __webpack_require__(62)
+var iota = __webpack_require__(63)
+var isBuffer = __webpack_require__(64)
 
 var hasTypedArrays  = ((typeof Float64Array) !== "undefined")
 
@@ -3563,9 +3563,9 @@ var _metaDataManager = __webpack_require__(17);
 
 var _metaDataManager2 = _interopRequireDefault(_metaDataManager);
 
-var _metaDataProvider = __webpack_require__(42);
+var _metaDataProvider = __webpack_require__(44);
 
-var _VolumeAcquisition = __webpack_require__(55);
+var _VolumeAcquisition = __webpack_require__(57);
 
 var _VolumeAcquisition2 = _interopRequireDefault(_VolumeAcquisition);
 
@@ -3691,9 +3691,21 @@ var nifti = {
 
   ImageId: _ImageId2.default,
 
+  streamingMode: false,
+
+  cornerstoneLoader: function cornerstoneLoader(imageId) {
+    if (this.streamingMode) {
+      return this.loadVolumeTimepoint(imageId);
+    }
+
+    return this.loadImage(imageId);
+  },
   register: function register(cornerstone) {
-    // cornerstone.registerImageLoader('nifti', this.loadImage);
-    cornerstone.registerImageLoader('nifti', this.loadVolumeTimepoint);
+    var _this = this;
+
+    cornerstone.registerImageLoader('nifti', function (imageId) {
+      return _this.cornerstoneLoader(imageId, _this);
+    });
     cornerstone.metaData.addProvider(_metaDataProvider.metaDataProvider);
   },
   configure: function configure(loaderOptions) {
@@ -4623,8 +4635,8 @@ if ((moduleType !== 'undefined') && module.exports) {
 
 var assign    = __webpack_require__(2).assign;
 
-var deflate   = __webpack_require__(46);
-var inflate   = __webpack_require__(49);
+var deflate   = __webpack_require__(48);
+var inflate   = __webpack_require__(51);
 var constants = __webpack_require__(24);
 
 var pako = {};
@@ -5095,7 +5107,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* eslint import/extensions: off */
 
 
-var _Slice = __webpack_require__(56);
+var _Slice = __webpack_require__(58);
 
 var _Slice2 = _interopRequireDefault(_Slice);
 
@@ -5116,13 +5128,15 @@ var convertRAStoLPS = Symbol('convertRAStoLPS');
 
 var Volume = function () {
   function Volume(imageIdObject, metaData, imageDataNDarray, floatImageDataNDarray) {
+    var isSingleTimepoint = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
+
     _classCallCheck(this, Volume);
 
     this.imageIdObject = imageIdObject;
     this.metaData = metaData;
     this.imageDataNDarray = imageDataNDarray;
     this.floatImageDataNDarray = floatImageDataNDarray;
-
+    this.isSingleTimepoint = isSingleTimepoint;
     this[ensureVoxelStorageInXYZ]();
     this[convertToNeurologicalView]();
     this[convertRAStoLPS]();
@@ -5310,7 +5324,7 @@ var Volume = function () {
   }, {
     key: 'slice',
     value: function slice(imageIdObject) {
-      return new _Slice2.default(this, imageIdObject);
+      return new _Slice2.default(this, imageIdObject, this.isSingleTimepoint);
     }
   }, {
     key: 'hasImageData',
@@ -5432,6 +5446,241 @@ var VolumeEntry = function VolumeEntry(volume) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _cornerstoneEvents = __webpack_require__(14);
+
+var _cornerstoneEvents2 = _interopRequireDefault(_cornerstoneEvents);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Fetches files and notifies Cornerstone of the relevant events.
+ */
+var FileFetcher = function () {
+  function FileFetcher() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$method = _ref.method,
+        method = _ref$method === undefined ? 'GET' : _ref$method,
+        _ref$responseType = _ref.responseType,
+        responseType = _ref$responseType === undefined ? 'arraybuffer' : _ref$responseType,
+        _ref$beforeSend = _ref.beforeSend,
+        beforeSend = _ref$beforeSend === undefined ? noop : _ref$beforeSend,
+        _ref$headers = _ref.headers,
+        headers = _ref$headers === undefined ? {} : _ref$headers,
+        _ref$onHeadersReceive = _ref.onHeadersReceived,
+        onHeadersReceived = _ref$onHeadersReceive === undefined ? noop : _ref$onHeadersReceive;
+
+    _classCallCheck(this, FileFetcher);
+
+    this.options = {
+      method: method,
+      responseType: responseType,
+      beforeSend: beforeSend,
+      headers: headers,
+      onHeadersReceived: onHeadersReceived
+    };
+    this.promisesCache = {};
+  }
+
+  _createClass(FileFetcher, [{
+    key: 'fetch',
+    value: function fetch(imageIdObject) {
+      var _this = this;
+
+      var cachedFileFetchPromise = this.getFetchPromiseFromCache(imageIdObject);
+      var fileFetchPromise = void 0;
+
+      if (cachedFileFetchPromise) {
+        fileFetchPromise = cachedFileFetchPromise.promise;
+      } else {
+        fileFetchPromise = new Promise(function (resolve, reject) {
+          var request = new XMLHttpRequest();
+          var eventParams = {
+            deferred: {
+              resolve: resolve,
+              reject: reject
+            },
+            url: imageIdObject.filePath,
+            imageId: imageIdObject.url
+          };
+
+          request.open(_this.options.method, imageIdObject.filePath, true);
+          request.responseType = _this.options.responseType;
+          if (typeof _this.options.beforeSend === 'function') {
+            _this.options.beforeSend(request, imageIdObject.url);
+          }
+
+          Object.keys(_this.options.headers).forEach(function (key) {
+            request.setRequestHeader(key, _this.options.headers[key]);
+          });
+
+          request.addEventListener('readystatechange', readyStateChange(_this.options, eventParams));
+          request.addEventListener('progress', progress(imageIdObject.filePath, imageIdObject.url, _this.options, eventParams));
+
+          request.send();
+        });
+
+        this.addFetchPromiseToCache(fileFetchPromise, imageIdObject);
+      }
+
+      return fileFetchPromise;
+    }
+  }, {
+    key: 'getFetchPromiseFromCache',
+    value: function getFetchPromiseFromCache(imageIdObject) {
+      var _this2 = this;
+
+      var promisesForThisFile = this.promisesCache[imageIdObject.filePath];
+
+      return Array.isArray(promisesForThisFile) && promisesForThisFile.find(function (entry) {
+        return entry.fetcher === _this2;
+      });
+    }
+  }, {
+    key: 'addFetchPromiseToCache',
+    value: function addFetchPromiseToCache(promise, imageIdObject) {
+      this.promisesCache[imageIdObject.filePath] = this.promisesCache[imageIdObject.filePath] || [];
+      this.promisesCache[imageIdObject.filePath].unshift(new FetchPromiseCacheEntry(this, imageIdObject, promise));
+    }
+  }]);
+
+  return FileFetcher;
+}();
+
+exports.default = FileFetcher;
+
+var FetchPromiseCacheEntry = function FetchPromiseCacheEntry(fetcher, imageIdObject, promise) {
+  _classCallCheck(this, FetchPromiseCacheEntry);
+
+  this.fetcher = fetcher;
+  this.imageIdObject = imageIdObject;
+  this.promise = promise;
+};
+
+// builds a function that is going to be called when there is progress on the
+// request response
+
+
+function progress(url, imageId, options, params) {
+  return function (e) {
+    var loaded = e.loaded;
+    var total = void 0;
+    var percentComplete = void 0;
+
+    if (e.lengthComputable) {
+      total = e.total; // e.total the total bytes set by the header
+      percentComplete = Math.round(loaded / total * 100);
+    }
+
+    // action
+    callOptionalEventHook(options.onprogress, e, params);
+
+    // event
+    var eventData = {
+      url: url,
+      imageId: imageId,
+      loaded: loaded,
+      total: total,
+      percentComplete: percentComplete
+    };
+
+    _cornerstoneEvents2.default.imageLoadProgress(eventData);
+  };
+}
+
+// builds a function that is going to be called when the request changes state
+function readyStateChange(options, params) {
+  var XHR_HEADERS_RECEIVED = 2;
+  var XHR_DONE = 4;
+
+  return function (e) {
+    callOptionalEventHook(options.onreadystatechange, e, params);
+    if (options.onreadystatechange) {
+      return;
+    }
+
+    if (this.readyState === XHR_HEADERS_RECEIVED) {
+      if (options.onHeadersReceived) {
+        options.onHeadersReceived(this, options, params);
+      }
+    }
+
+    if (this.readyState === XHR_DONE) {
+      if ([200, 206].includes(this.status)) {
+        params.deferred.resolve(this.response);
+      } else {
+        var errorDescription = 'Could not fetch the file \'' + params.url + '\'. Error code was ' + this.status + '.';
+
+        params.deferred.reject(new Error(errorDescription));
+      }
+    }
+  };
+}
+
+// calls an eventual hook function present in the options
+function callOptionalEventHook(hook, e, params) {
+  if (hook) {
+    hook(e, params);
+  }
+}
+
+function noop() {}
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = decompressNiftiData;
+
+var _externalModules = __webpack_require__(1);
+
+var dependencies = {
+  nifti: _externalModules.external.niftiReader
+};
+
+/**
+ * decompressNiftiData - Decompresses (if necessary) a nifti file data.
+ *
+ * @param  {ArrayBuffer} rawData the raw file data (compressed or not).
+ * @return {ArrayBuffer}         the decompressed file data.
+ */
+function decompressNiftiData(rawData, imageIdObject) {
+  var nifti = dependencies.nifti;
+
+  var fileData = rawData;
+
+  // decompresses the file, if necessary
+  if (nifti.isCompressed(rawData)) {
+    fileData = nifti.decompress(rawData);
+  }
+
+  if (!nifti.isNIFTI(fileData)) {
+    throw new Error('The file \'' + imageIdObject.filePath + '\' is not a valid NIFTI file.');
+  }
+
+  return fileData;
+}
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.default = convertFloatDataToInteger;
 
 var _ndarray = __webpack_require__(9);
@@ -5487,7 +5736,7 @@ function convertFloatDataToInteger(imageDataView, metaData) {
 }
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5552,7 +5801,7 @@ function minMaxNDarray(ndarray) {
 exports.default = minMaxNDarray;
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5573,7 +5822,7 @@ function unInt8ArrayConcat(first, second) {
 }
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -5584,7 +5833,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 31 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {exports.fetch = isFunction(global.fetch) && isFunction(global.ReadableStream)
@@ -5664,12 +5913,12 @@ xhr = null // Help gc
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 32 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process, Buffer, global) {var capability = __webpack_require__(31)
+/* WEBPACK VAR INJECTION */(function(process, Buffer, global) {var capability = __webpack_require__(33)
 var inherits = __webpack_require__(3)
-var stream = __webpack_require__(33)
+var stream = __webpack_require__(35)
 
 var rStates = exports.readyStates = {
 	UNSENT: 0,
@@ -5888,20 +6137,20 @@ IncomingMessage.prototype._onXHRProgress = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(6).Buffer, __webpack_require__(0)))
 
 /***/ }),
-/* 33 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(34);
+exports = module.exports = __webpack_require__(36);
 exports.Stream = exports;
 exports.Readable = exports;
-exports.Writable = __webpack_require__(38);
+exports.Writable = __webpack_require__(40);
 exports.Duplex = __webpack_require__(5);
-exports.Transform = __webpack_require__(40);
+exports.Transform = __webpack_require__(42);
 exports.PassThrough = __webpack_require__(78);
 
 
 /***/ }),
-/* 34 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5936,7 +6185,7 @@ var processNextTick = __webpack_require__(10);
 module.exports = Readable;
 
 /*<replacement>*/
-var isArray = __webpack_require__(30);
+var isArray = __webpack_require__(32);
 /*</replacement>*/
 
 /*<replacement>*/
@@ -5946,7 +6195,7 @@ var Duplex;
 Readable.ReadableState = ReadableState;
 
 /*<replacement>*/
-var EE = __webpack_require__(35).EventEmitter;
+var EE = __webpack_require__(37).EventEmitter;
 
 var EElistenerCount = function (emitter, type) {
   return emitter.listeners(type).length;
@@ -5954,7 +6203,7 @@ var EElistenerCount = function (emitter, type) {
 /*</replacement>*/
 
 /*<replacement>*/
-var Stream = __webpack_require__(36);
+var Stream = __webpack_require__(38);
 /*</replacement>*/
 
 // TODO(bmeurer): Change this back to const once hole checks are
@@ -5986,7 +6235,7 @@ if (debugUtil && debugUtil.debuglog) {
 /*</replacement>*/
 
 var BufferList = __webpack_require__(74);
-var destroyImpl = __webpack_require__(37);
+var destroyImpl = __webpack_require__(39);
 var StringDecoder;
 
 util.inherits(Readable, Stream);
@@ -6069,7 +6318,7 @@ function ReadableState(options, stream) {
   this.decoder = null;
   this.encoding = null;
   if (options.encoding) {
-    if (!StringDecoder) StringDecoder = __webpack_require__(39).StringDecoder;
+    if (!StringDecoder) StringDecoder = __webpack_require__(41).StringDecoder;
     this.decoder = new StringDecoder(options.encoding);
     this.encoding = options.encoding;
   }
@@ -6225,7 +6474,7 @@ Readable.prototype.isPaused = function () {
 
 // backwards compatibility.
 Readable.prototype.setEncoding = function (enc) {
-  if (!StringDecoder) StringDecoder = __webpack_require__(39).StringDecoder;
+  if (!StringDecoder) StringDecoder = __webpack_require__(41).StringDecoder;
   this._readableState.decoder = new StringDecoder(enc);
   this._readableState.encoding = enc;
   return this;
@@ -6915,7 +7164,7 @@ function indexOf(xs, x) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(4)))
 
 /***/ }),
-/* 35 */
+/* 37 */
 /***/ (function(module, exports) {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -7223,14 +7472,14 @@ function isUndefined(arg) {
 
 
 /***/ }),
-/* 36 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(35).EventEmitter;
+module.exports = __webpack_require__(37).EventEmitter;
 
 
 /***/ }),
-/* 37 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7308,7 +7557,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 38 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7389,7 +7638,7 @@ var internalUtil = {
 /*</replacement>*/
 
 /*<replacement>*/
-var Stream = __webpack_require__(36);
+var Stream = __webpack_require__(38);
 /*</replacement>*/
 
 /*<replacement>*/
@@ -7403,7 +7652,7 @@ function _isUint8Array(obj) {
 }
 /*</replacement>*/
 
-var destroyImpl = __webpack_require__(37);
+var destroyImpl = __webpack_require__(39);
 
 util.inherits(Writable, Stream);
 
@@ -7979,7 +8228,7 @@ Writable.prototype._destroy = function (err, cb) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(75).setImmediate, __webpack_require__(0)))
 
 /***/ }),
-/* 39 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8257,7 +8506,7 @@ function simpleEnd(buf) {
 }
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8477,7 +8726,7 @@ function done(stream, er, data) {
 }
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8508,7 +8757,7 @@ Object.defineProperty(exports, 'external', {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
-/* 42 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8524,7 +8773,7 @@ var _metaDataManager = __webpack_require__(17);
 
 var _metaDataManager2 = _interopRequireDefault(_metaDataManager);
 
-var _decimalToFraction = __webpack_require__(43);
+var _decimalToFraction = __webpack_require__(45);
 
 var _externalModules = __webpack_require__(1);
 
@@ -8715,7 +8964,7 @@ function metaDataProviderBuilder(_ref) {
 }
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8834,7 +9083,7 @@ exports.roundToPlaces = roundToPlaces;
 exports.gcf = gcf;
 
 /***/ }),
-/* 44 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8852,7 +9101,7 @@ exports.gcf = gcf;
  */
 var nifti = nifti || {};
 nifti.NIFTI1 = nifti.NIFTI1 || (( true) ? __webpack_require__(18) : null);
-nifti.NIFTI2 = nifti.NIFTI2 || (( true) ? __webpack_require__(45) : null);
+nifti.NIFTI2 = nifti.NIFTI2 || (( true) ? __webpack_require__(47) : null);
 nifti.Utils = nifti.Utils || (( true) ? __webpack_require__(12) : null);
 
 var pako = pako || (( true) ? __webpack_require__(19) : null);
@@ -9062,7 +9311,7 @@ if ((moduleType !== 'undefined') && module.exports) {
 
 
 /***/ }),
-/* 45 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9465,14 +9714,14 @@ if ((moduleType !== 'undefined') && module.exports) {
 
 
 /***/ }),
-/* 46 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_deflate = __webpack_require__(47);
+var zlib_deflate = __webpack_require__(49);
 var utils        = __webpack_require__(2);
 var strings      = __webpack_require__(22);
 var msg          = __webpack_require__(13);
@@ -9872,7 +10121,7 @@ exports.gzip = gzip;
 
 
 /***/ }),
-/* 47 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9898,7 +10147,7 @@ exports.gzip = gzip;
 // 3. This notice may not be removed or altered from any source distribution.
 
 var utils   = __webpack_require__(2);
-var trees   = __webpack_require__(48);
+var trees   = __webpack_require__(50);
 var adler32 = __webpack_require__(20);
 var crc32   = __webpack_require__(21);
 var msg     = __webpack_require__(13);
@@ -11753,7 +12002,7 @@ exports.deflateTune = deflateTune;
 
 
 /***/ }),
-/* 48 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12980,20 +13229,20 @@ exports._tr_align = _tr_align;
 
 
 /***/ }),
-/* 49 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_inflate = __webpack_require__(50);
+var zlib_inflate = __webpack_require__(52);
 var utils        = __webpack_require__(2);
 var strings      = __webpack_require__(22);
 var c            = __webpack_require__(24);
 var msg          = __webpack_require__(13);
 var ZStream      = __webpack_require__(23);
-var GZheader     = __webpack_require__(53);
+var GZheader     = __webpack_require__(55);
 
 var toString = Object.prototype.toString;
 
@@ -13405,7 +13654,7 @@ exports.ungzip  = inflate;
 
 
 /***/ }),
-/* 50 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13433,8 +13682,8 @@ exports.ungzip  = inflate;
 var utils         = __webpack_require__(2);
 var adler32       = __webpack_require__(20);
 var crc32         = __webpack_require__(21);
-var inflate_fast  = __webpack_require__(51);
-var inflate_table = __webpack_require__(52);
+var inflate_fast  = __webpack_require__(53);
+var inflate_table = __webpack_require__(54);
 
 var CODES = 0;
 var LENS = 1;
@@ -14968,7 +15217,7 @@ exports.inflateUndermine = inflateUndermine;
 
 
 /***/ }),
-/* 51 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15320,7 +15569,7 @@ module.exports = function inflate_fast(strm, start) {
 
 
 /***/ }),
-/* 52 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15670,7 +15919,7 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 
 
 /***/ }),
-/* 53 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15735,7 +15984,7 @@ module.exports = GZheader;
 
 
 /***/ }),
-/* 54 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15764,7 +16013,7 @@ function registerLoaders(cornerstone) {
 exports.default = registerLoaders;
 
 /***/ }),
-/* 55 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15787,17 +16036,17 @@ var _VolumeCache = __webpack_require__(26);
 
 var _VolumeCache2 = _interopRequireDefault(_VolumeCache);
 
-var _FileFetcher = __webpack_require__(63);
+var _FileFetcher = __webpack_require__(27);
 
 var _FileFetcher2 = _interopRequireDefault(_FileFetcher);
 
-var _decompressNiftiData = __webpack_require__(64);
+var _decompressNiftiData = __webpack_require__(28);
 
 var _decompressNiftiData2 = _interopRequireDefault(_decompressNiftiData);
 
 var _parseNiftiFile2 = __webpack_require__(15);
 
-var _convertFloatDataToInteger = __webpack_require__(27);
+var _convertFloatDataToInteger = __webpack_require__(29);
 
 var _convertFloatDataToInteger2 = _interopRequireDefault(_convertFloatDataToInteger);
 
@@ -15805,7 +16054,7 @@ var _ImageId = __webpack_require__(8);
 
 var _ImageId2 = _interopRequireDefault(_ImageId);
 
-var _minMaxNDarray = __webpack_require__(28);
+var _minMaxNDarray = __webpack_require__(30);
 
 var _minMaxNDarray2 = _interopRequireDefault(_minMaxNDarray);
 
@@ -16125,7 +16374,7 @@ function determineWindowValues(slope, intercept, minValue, maxValue) {
 }
 
 /***/ }),
-/* 56 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16139,19 +16388,19 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _externalModules = __webpack_require__(1);
 
-var _flattenNDarray = __webpack_require__(57);
+var _flattenNDarray = __webpack_require__(59);
 
 var _flattenNDarray2 = _interopRequireDefault(_flattenNDarray);
 
-var _arrayRotateRight = __webpack_require__(58);
+var _arrayRotateRight = __webpack_require__(60);
 
 var _arrayRotateRight2 = _interopRequireDefault(_arrayRotateRight);
 
-var _multiplyMatrixAndPoint = __webpack_require__(59);
+var _multiplyMatrixAndPoint = __webpack_require__(61);
 
 var _multiplyMatrixAndPoint2 = _interopRequireDefault(_multiplyMatrixAndPoint);
 
-var _normalizeVector = __webpack_require__(60);
+var _normalizeVector = __webpack_require__(62);
 
 var _normalizeVector2 = _interopRequireDefault(_normalizeVector);
 
@@ -16177,13 +16426,15 @@ var getPatientPosition = Symbol('getPatientPosition');
 
 var Slice = function () {
   function Slice(volume, imageIdObject) {
+    var isSingleTimepoint = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
     _classCallCheck(this, Slice);
 
     this.volume = volume;
     this.imageIdObject = imageIdObject;
     this.dimension = imageIdObject.slice.dimension;
     this.index = imageIdObject.slice.index;
-    this.timePoint = imageIdObject.timePoint;
+    this.timePoint = isSingleTimepoint ? 0 : imageIdObject.timePoint;
     this.metaData = {};
 
     this[determineMetaData]();
@@ -16360,7 +16611,7 @@ var Slice = function () {
 exports.default = Slice;
 
 /***/ }),
-/* 57 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16395,7 +16646,7 @@ function flattenNDarray(ndarray) {
 }
 
 /***/ }),
-/* 58 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16425,7 +16676,7 @@ function arrayRotateRight(array) {
 }
 
 /***/ }),
-/* 59 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16483,7 +16734,7 @@ function multiplyMatrixAndPoint(matrix, point) {
 }
 
 /***/ }),
-/* 60 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16523,7 +16774,7 @@ function normalizeVector() {
 }
 
 /***/ }),
-/* 61 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16540,7 +16791,7 @@ function iota(n) {
 module.exports = iota
 
 /***/ }),
-/* 62 */
+/* 64 */
 /***/ (function(module, exports) {
 
 /*!
@@ -16565,241 +16816,6 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _cornerstoneEvents = __webpack_require__(14);
-
-var _cornerstoneEvents2 = _interopRequireDefault(_cornerstoneEvents);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * Fetches files and notifies Cornerstone of the relevant events.
- */
-var FileFetcher = function () {
-  function FileFetcher() {
-    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref$method = _ref.method,
-        method = _ref$method === undefined ? 'GET' : _ref$method,
-        _ref$responseType = _ref.responseType,
-        responseType = _ref$responseType === undefined ? 'arraybuffer' : _ref$responseType,
-        _ref$beforeSend = _ref.beforeSend,
-        beforeSend = _ref$beforeSend === undefined ? noop : _ref$beforeSend,
-        _ref$headers = _ref.headers,
-        headers = _ref$headers === undefined ? {} : _ref$headers,
-        _ref$onHeadersReceive = _ref.onHeadersReceived,
-        onHeadersReceived = _ref$onHeadersReceive === undefined ? noop : _ref$onHeadersReceive;
-
-    _classCallCheck(this, FileFetcher);
-
-    this.options = {
-      method: method,
-      responseType: responseType,
-      beforeSend: beforeSend,
-      headers: headers,
-      onHeadersReceived: onHeadersReceived
-    };
-    this.promisesCache = {};
-  }
-
-  _createClass(FileFetcher, [{
-    key: 'fetch',
-    value: function fetch(imageIdObject) {
-      var _this = this;
-
-      var cachedFileFetchPromise = this.getFetchPromiseFromCache(imageIdObject);
-      var fileFetchPromise = void 0;
-
-      if (cachedFileFetchPromise) {
-        fileFetchPromise = cachedFileFetchPromise.promise;
-      } else {
-        fileFetchPromise = new Promise(function (resolve, reject) {
-          var request = new XMLHttpRequest();
-          var eventParams = {
-            deferred: {
-              resolve: resolve,
-              reject: reject
-            },
-            url: imageIdObject.filePath,
-            imageId: imageIdObject.url
-          };
-
-          request.open(_this.options.method, imageIdObject.filePath, true);
-          request.responseType = _this.options.responseType;
-          if (typeof _this.options.beforeSend === 'function') {
-            _this.options.beforeSend(request, imageIdObject.url);
-          }
-
-          Object.keys(_this.options.headers).forEach(function (key) {
-            request.setRequestHeader(key, _this.options.headers[key]);
-          });
-
-          request.addEventListener('readystatechange', readyStateChange(_this.options, eventParams));
-          request.addEventListener('progress', progress(imageIdObject.filePath, imageIdObject.url, _this.options, eventParams));
-
-          request.send();
-        });
-
-        this.addFetchPromiseToCache(fileFetchPromise, imageIdObject);
-      }
-
-      return fileFetchPromise;
-    }
-  }, {
-    key: 'getFetchPromiseFromCache',
-    value: function getFetchPromiseFromCache(imageIdObject) {
-      var _this2 = this;
-
-      var promisesForThisFile = this.promisesCache[imageIdObject.filePath];
-
-      return Array.isArray(promisesForThisFile) && promisesForThisFile.find(function (entry) {
-        return entry.fetcher === _this2;
-      });
-    }
-  }, {
-    key: 'addFetchPromiseToCache',
-    value: function addFetchPromiseToCache(promise, imageIdObject) {
-      this.promisesCache[imageIdObject.filePath] = this.promisesCache[imageIdObject.filePath] || [];
-      this.promisesCache[imageIdObject.filePath].unshift(new FetchPromiseCacheEntry(this, imageIdObject, promise));
-    }
-  }]);
-
-  return FileFetcher;
-}();
-
-exports.default = FileFetcher;
-
-var FetchPromiseCacheEntry = function FetchPromiseCacheEntry(fetcher, imageIdObject, promise) {
-  _classCallCheck(this, FetchPromiseCacheEntry);
-
-  this.fetcher = fetcher;
-  this.imageIdObject = imageIdObject;
-  this.promise = promise;
-};
-
-// builds a function that is going to be called when there is progress on the
-// request response
-
-
-function progress(url, imageId, options, params) {
-  return function (e) {
-    var loaded = e.loaded;
-    var total = void 0;
-    var percentComplete = void 0;
-
-    if (e.lengthComputable) {
-      total = e.total; // e.total the total bytes set by the header
-      percentComplete = Math.round(loaded / total * 100);
-    }
-
-    // action
-    callOptionalEventHook(options.onprogress, e, params);
-
-    // event
-    var eventData = {
-      url: url,
-      imageId: imageId,
-      loaded: loaded,
-      total: total,
-      percentComplete: percentComplete
-    };
-
-    _cornerstoneEvents2.default.imageLoadProgress(eventData);
-  };
-}
-
-// builds a function that is going to be called when the request changes state
-function readyStateChange(options, params) {
-  var XHR_HEADERS_RECEIVED = 2;
-  var XHR_DONE = 4;
-
-  return function (e) {
-    callOptionalEventHook(options.onreadystatechange, e, params);
-    if (options.onreadystatechange) {
-      return;
-    }
-
-    if (this.readyState === XHR_HEADERS_RECEIVED) {
-      if (options.onHeadersReceived) {
-        options.onHeadersReceived(this, options, params);
-      }
-    }
-
-    if (this.readyState === XHR_DONE) {
-      if ([200, 206].includes(this.status)) {
-        params.deferred.resolve(this.response);
-      } else {
-        var errorDescription = 'Could not fetch the file \'' + params.url + '\'. Error code was ' + this.status + '.';
-
-        params.deferred.reject(new Error(errorDescription));
-      }
-    }
-  };
-}
-
-// calls an eventual hook function present in the options
-function callOptionalEventHook(hook, e, params) {
-  if (hook) {
-    hook(e, params);
-  }
-}
-
-function noop() {}
-
-/***/ }),
-/* 64 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = decompressNiftiData;
-
-var _externalModules = __webpack_require__(1);
-
-var dependencies = {
-  nifti: _externalModules.external.niftiReader
-};
-
-/**
- * decompressNiftiData - Decompresses (if necessary) a nifti file data.
- *
- * @param  {ArrayBuffer} rawData the raw file data (compressed or not).
- * @return {ArrayBuffer}         the decompressed file data.
- */
-function decompressNiftiData(rawData, imageIdObject) {
-  var nifti = dependencies.nifti;
-
-  var fileData = rawData;
-
-  // decompresses the file, if necessary
-  if (nifti.isCompressed(rawData)) {
-    fileData = nifti.decompress(rawData);
-  }
-
-  if (!nifti.isNIFTI(fileData)) {
-    throw new Error('The file \'' + imageIdObject.filePath + '\' is not a valid NIFTI file.');
-  }
-
-  return fileData;
-}
 
 /***/ }),
 /* 65 */
@@ -16938,7 +16954,7 @@ var _VolumeCache2 = _interopRequireDefault(_VolumeCache);
 
 var _parseNiftiFile2 = __webpack_require__(15);
 
-var _convertFloatDataToInteger = __webpack_require__(27);
+var _convertFloatDataToInteger = __webpack_require__(29);
 
 var _convertFloatDataToInteger2 = _interopRequireDefault(_convertFloatDataToInteger);
 
@@ -16946,11 +16962,11 @@ var _ImageId = __webpack_require__(8);
 
 var _ImageId2 = _interopRequireDefault(_ImageId);
 
-var _minMaxNDarray = __webpack_require__(28);
+var _minMaxNDarray = __webpack_require__(30);
 
 var _minMaxNDarray2 = _interopRequireDefault(_minMaxNDarray);
 
-var _unInt8ArrayConcat = __webpack_require__(29);
+var _unInt8ArrayConcat = __webpack_require__(31);
 
 var _unInt8ArrayConcat2 = _interopRequireDefault(_unInt8ArrayConcat);
 
@@ -17184,7 +17200,7 @@ var VolumeAcquisitionStreamer = function () {
 
       var timePointImageIdObject = new _ImageId2.default(imageIdObject.filePath, imageIdObject.slice, 0);
 
-      return new _Volume2.default(timePointImageIdObject, metaData, imageDataNDarray, metaData.floatImageDataNDarray);
+      return new _Volume2.default(timePointImageIdObject, metaData, imageDataNDarray, metaData.floatImageDataNDarray, true);
     }
   }, {
     key: cacheVolume,
@@ -17259,7 +17275,7 @@ var _FileStreamer2 = _interopRequireDefault(_FileStreamer);
 
 var _parseNiftiFile = __webpack_require__(15);
 
-var _unInt8ArrayConcat = __webpack_require__(29);
+var _unInt8ArrayConcat = __webpack_require__(31);
 
 var _unInt8ArrayConcat2 = _interopRequireDefault(_unInt8ArrayConcat);
 
@@ -17354,7 +17370,7 @@ var VolumeTimepointFileFetcher = function () {
       this.ensureStreaming(this.imageId);
       var imageData = this.volumeData;
 
-      if (imageData.headerDataReady) {
+      if (imageData.header) {
         return Promise.resolve(imageData.header);
       }
 
@@ -17711,7 +17727,7 @@ function callOptionalEventHook(hook, e, params) {
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var ClientRequest = __webpack_require__(70)
-var IncomingMessage = __webpack_require__(32)
+var IncomingMessage = __webpack_require__(34)
 var extend = __webpack_require__(80)
 var statusCodes = __webpack_require__(81)
 var url = __webpack_require__(82)
@@ -17799,10 +17815,10 @@ http.METHODS = [
 /* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(Buffer, global, process) {var capability = __webpack_require__(31)
+/* WEBPACK VAR INJECTION */(function(Buffer, global, process) {var capability = __webpack_require__(33)
 var inherits = __webpack_require__(3)
-var response = __webpack_require__(32)
-var stream = __webpack_require__(33)
+var response = __webpack_require__(34)
+var stream = __webpack_require__(35)
 var toArrayBuffer = __webpack_require__(79)
 
 var IncomingMessage = response.IncomingMessage
@@ -18782,7 +18798,7 @@ function config (name) {
 
 module.exports = PassThrough;
 
-var Transform = __webpack_require__(40);
+var Transform = __webpack_require__(42);
 
 /*<replacement>*/
 var util = __webpack_require__(7);

@@ -129,7 +129,7 @@ export default class VolumeAcquisitionStreamer {
     Object.assign(metaData, moreMetaData);
     const dimensions = metaData.voxelLength;
     // only 1 timeSlice
-    const timeSlices =1;
+    const timeSlices = 1;
     const strides = [
       1,
       dimensions[0],
@@ -189,7 +189,7 @@ export default class VolumeAcquisitionStreamer {
   [createVolume] ({ metaData, imageDataNDarray }, imageIdObject) {
     const timePointImageIdObject = new ImageId(imageIdObject.filePath, imageIdObject.slice, 0);
 
-    return new Volume(timePointImageIdObject, metaData, imageDataNDarray, metaData.floatImageDataNDarray);
+    return new Volume(timePointImageIdObject, metaData, imageDataNDarray, metaData.floatImageDataNDarray, true);
   }
 
   [cacheVolume] (volume, imageIdObject) {

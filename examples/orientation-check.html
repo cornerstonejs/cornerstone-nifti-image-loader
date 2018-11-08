@@ -79,7 +79,7 @@
               </div>
             </div>
             <div class="col-sm-3">
-              <button class="btn btn-primary" type="button" id="download-and-view">Download and View</button>
+                <button class="btn btn-primary" type="button" id="download-and-view">Download and View</button>
             </div>
           </div>
         </form>
@@ -115,78 +115,91 @@
         <button data-dimension="y" class="display-metadata btn btn-sm btn-secondary">Display meta data</button>
       </div>
       <div id="nifti-image-data">
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Columns:</span>
-          <span class="badge badge-pill badge-primary"  id="columns"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Rows:</span>
-          <span class="badge badge-pill badge-primary"  id="rows"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Number of Frames:</span>
-          <span class="badge badge-pill badge-primary"  id="numberOfFrames"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Pixel Spacing:</span>
-          <span class="badge badge-pill badge-primary" id="pixelSpacing"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Samples per Pixel:</span>
-          <span class="badge badge-pill badge-primary"  id="samplesPerPixel"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Photometric Interpretation:</span>
-          <span class="badge badge-pill badge-primary"  id="photometricInterpretation"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Planar Configuration:</span>
-          <span class="badge badge-pill badge-primary"  id="planarConfiguration"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Pixel Aspect Ratio:</span>
-          <span class="badge badge-pill badge-primary"  id="pixelAspectRatio"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Bits Allocated:</span>
-          <span class="badge badge-pill badge-primary"  id="bitsAllocated"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Bits Stored:</span>
-          <span class="badge badge-pill badge-primary"  id="bitsStored"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">High Bit:</span>
-          <span class="badge badge-pill badge-primary"  id="highBit"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Pixel Representation:</span>
-          <span class="badge badge-pill badge-primary"  id="pixelRepresentation"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">WindowCenter:</span>
-          <span class="badge badge-pill badge-primary"  id="windowCenter"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">WindowWidth:</span>
-          <span class="badge badge-pill badge-primary"  id="windowWidth"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">RescaleIntercept:</span>
-          <span class="badge badge-pill badge-primary"  id="rescaleIntercept"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">RescaleSlope:</span>
-          <span class="badge badge-pill badge-primary"  id="rescaleSlope"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Min Stored Pixel Value:</span>
-          <span class="badge badge-pill badge-primary"  id="minStoredPixelValue"></span>
-        </div>
-        <div class="metadata">
-          <span class="badge badge-pill badge-light">Max Stored Pixel Value:</span>
-          <span class="badge badge-pill badge-primary"  id="maxStoredPixelValue"></span>
-        </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Columns:</span>
+              <span class="badge badge-pill badge-primary" id="columns"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Rows:</span>
+              <span class="badge badge-pill badge-primary" id="rows"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Number of Frames:</span>
+              <span class="badge badge-pill badge-primary" id="numberOfFrames"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Pixel Spacing:</span>
+              <span class="badge badge-pill badge-primary" id="pixelSpacing"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Samples per Pixel:</span>
+              <span class="badge badge-pill badge-primary" id="samplesPerPixel"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Photometric Interpretation:</span>
+              <span class="badge badge-pill badge-primary" id="photometricInterpretation"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Planar Configuration:</span>
+              <span class="badge badge-pill badge-primary" id="planarConfiguration"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Pixel Aspect Ratio:</span>
+              <span class="badge badge-pill badge-primary" id="pixelAspectRatio"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Bits Allocated:</span>
+              <span class="badge badge-pill badge-primary" id="bitsAllocated"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Bits Stored:</span>
+              <span class="badge badge-pill badge-primary" id="bitsStored"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">High Bit:</span>
+              <span class="badge badge-pill badge-primary" id="highBit"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Pixel Representation:</span>
+              <span class="badge badge-pill badge-primary" id="pixelRepresentation"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">WindowCenter:</span>
+              <span class="badge badge-pill badge-primary" id="windowCenter"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">WindowWidth:</span>
+              <span class="badge badge-pill badge-primary" id="windowWidth"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">RescaleIntercept:</span>
+              <span class="badge badge-pill badge-primary" id="rescaleIntercept"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">RescaleSlope:</span>
+              <span class="badge badge-pill badge-primary" id="rescaleSlope"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Min Stored Pixel Value:</span>
+              <span class="badge badge-pill badge-primary" id="minStoredPixelValue"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Max Stored Pixel Value:</span>
+              <span class="badge badge-pill badge-primary" id="maxStoredPixelValue"></span>
+          </div>
+          <div class="metadata">
+              <span class="badge badge-pill badge-light">Timepoints:</span>
+              <span class="badge badge-pill badge-primary" id="timepoints"></span>
+          </div>
+          <hr />
+          <div>
+              <button class="btn btn-secondary btn-sm" type="button" id="prev-timepoint">Prev. Timepoint</button>
+              <button class="btn btn-secondary btn-sm" type="button" id="next-timepoint">Next Timepoint</button>
+              <div class="metadata">
+                  <span class="badge badge-pill badge-light">Current Timepoint:</span>
+                  <span class="badge badge-pill badge-primary" id="currentTimepoint"></span>
+              </div>
+          </div>
       </div>
     </section>
   </div>
@@ -202,7 +215,8 @@
 
 <script>
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
-  const ImageId = cornerstoneNIFTIImageLoader.nifti.ImageId;
+    const ImageId = cornerstoneNIFTIImageLoader.nifti.ImageId;
+    cornerstoneNIFTIImageLoader.nifti.streamingMode = true;
   let loaded = false;
 
   var synchronizer = new cornerstoneTools.Synchronizer("cornerstonenewimage", cornerstoneTools.updateImageSynchronizer);
@@ -257,14 +271,15 @@
   const elementZ = document.getElementById('nifti-image-z');
   const elementX = document.getElementById('nifti-image-x');
   const elementY = document.getElementById('nifti-image-y');
-
+    let timepoint = 0;
   function downloadAndView(elements) {
     let url = document.getElementById('nifti-URL').value;
     let imageIdObject = ImageId.fromURL(`nifti:${url}`);
 
-    loadAndViewImage(elementZ, `nifti:${imageIdObject.filePath}#z,t-0`);
-    loadAndViewImage(elementX, `nifti:${imageIdObject.filePath}#x,t-0`);
-    loadAndViewImage(elementY, `nifti:${imageIdObject.filePath}#y,t-0`);
+      document.getElementById('currentTimepoint').textContent = timepoint;
+      loadAndViewImage(elementZ, `nifti:${imageIdObject.filePath}#z,t-${timepoint}`);
+      loadAndViewImage(elementX, `nifti:${imageIdObject.filePath}#x,t-${timepoint}`);
+      loadAndViewImage(elementY, `nifti:${imageIdObject.filePath}#y,t-${timepoint}`);
   }
 
   cornerstone.events.addEventListener('cornerstoneimageloadprogress', function(event) {
@@ -278,8 +293,20 @@
   cornerstone.enable(elementY);
 
   document.getElementById('download-and-view').addEventListener('click', function(e) {
-    downloadAndView([elementZ, elementX, elementY]);
-  });
+      let url = document.getElementById('nifti-URL').value;
+      
+      downloadAndView([elementZ, elementX, elementY]);
+    });
+
+    document.getElementById('next-timepoint').addEventListener('click', function (e) {
+        timepoint++;
+        downloadAndView([elementZ, elementX, elementY]);
+    });
+
+    document.getElementById('prev-timepoint').addEventListener('click', function (e) {
+        timepoint--;
+        downloadAndView([elementZ, elementX, elementY]);
+    });
 
   const form = document.getElementById('form');
   form.addEventListener('submit', function(e) {
@@ -337,7 +364,8 @@
     document.getElementById('rescaleSlope').textContent = metaData('modalityLutModule').rescaleSlope;
     document.getElementById('minStoredPixelValue').textContent = metaData('imagePixelModule').smallestPixelValue;
     document.getElementById('maxStoredPixelValue').textContent = metaData('imagePixelModule').largestPixelValue;
-
+    document.getElementById('timepoints').textContent = metaData('functional').timeSlices;
+      
     function getPixelRepresentation(value) {
       return value === '0000H' ? '(unsigned)' : '(signed)';
     }

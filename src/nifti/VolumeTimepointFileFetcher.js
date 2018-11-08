@@ -101,7 +101,7 @@ export default class VolumeTimepointFileFetcher {
     this.ensureStreaming(this.imageId);
     const imageData = this.volumeData;
 
-    if (imageData.headerDataReady) {
+    if (imageData.header) {
       return Promise.resolve(imageData.header);
     }
 
