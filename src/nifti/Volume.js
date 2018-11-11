@@ -8,12 +8,12 @@ const changeVoxelStorageOrder = Symbol('changeVoxelStorageOrder');
 const convertRAStoLPS = Symbol('convertRAStoLPS');
 
 export default class Volume {
-  constructor (imageIdObject, metaData, imageDataNDarray, floatImageDataNDarray) {
+  constructor (imageIdObject, metaData, imageDataNDarray, floatImageDataNDarray, isSingleTimepoint = false) {
     this.imageIdObject = imageIdObject;
     this.metaData = metaData;
     this.imageDataNDarray = imageDataNDarray;
     this.floatImageDataNDarray = floatImageDataNDarray;
-
+    this.isSingleTimepoint = isSingleTimepoint;
     this[ensureVoxelStorageInXYZ]();
     this[convertToNeurologicalView]();
     this[convertRAStoLPS]();
@@ -193,7 +193,7 @@ export default class Volume {
   }
 
   slice (imageIdObject) {
-    return new Slice(this, imageIdObject);
+    return new Slice(this, imageIdObject, this.isSingleTimepoint);
   }
 
   get hasImageData () {
