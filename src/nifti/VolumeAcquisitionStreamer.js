@@ -124,7 +124,9 @@ export default class VolumeAcquisitionStreamer {
   [readImageData]({ headerData, metaData, volumeData }) {
 
     const decompressedFileData = unInt8ArrayConcat(headerData, volumeData);
-    const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData.buffer, metaData);
+    // TODO: /*metaData*/ read a fresh copy of the metadata. 
+    // The metaData.dataType.TypedArrayConstructor gets lost in next timepoint.
+    const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData.buffer, null);
 
     Object.assign(metaData, moreMetaData);
     const dimensions = metaData.voxelLength;
