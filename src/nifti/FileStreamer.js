@@ -21,7 +21,9 @@ export default class FileStreamer {
         imageId: imageIdObject.url
       };
 
-      const request = http.get(imageIdObject.filePath, (response) => {
+      const request = http.get({ path: imageIdObject.filePath,
+        headers: this.options.headers },
+      (response) => {
         const contentLength = response.headers['Content-Length'] || response.headers['content-length'] || 0;
         const progressCallback = progress(imageIdObject.filePath, imageIdObject.url, this.options, eventParams);
         let bytesRead = 0;
@@ -41,10 +43,6 @@ export default class FileStreamer {
         response.on('end', () => {
           resolve();
         });
-      });
-
-      Object.keys(this.options.headers).forEach((name) => {
-        request.setHeader(name, this.options.headers[name]);
       });
 
       request.on('error', (e) => {
