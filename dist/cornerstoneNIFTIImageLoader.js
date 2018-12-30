@@ -1,4 +1,4 @@
-/*! cornerstone-nifti-image-loader - 1.0.0 - 2018-11-11 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
+/*! cornerstone-nifti-image-loader - 1.0.0 - 2018-12-30 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -70,17 +70,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
-/******/ 	// webpack-livereload-plugin
-/******/ 	(function() {
-/******/ 	  if (typeof window === "undefined") { return };
-/******/ 	  var id = "webpack-livereload-plugin-script";
-/******/ 	  if (document.getElementById(id)) { return; }
-/******/ 	  var el = document.createElement("script");
-/******/ 	  el.id = id;
-/******/ 	  el.async = true;
-/******/ 	  el.src = "//" + location.hostname + ":45001/livereload.js";
-/******/ 	  document.getElementsByTagName("head")[0].appendChild(el);
-/******/ 	}());
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 41);
 /******/ })
@@ -135,7 +124,7 @@ var _registerLoaders2 = _interopRequireDefault(_registerLoaders);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /* eslint import/extensions:0 */
-var cornerstone = window.cornerstone;
+var cornerstone = null;
 var niftiReaderJs = _niftiReaderJs2.default;
 
 var external = {

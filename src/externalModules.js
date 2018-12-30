@@ -2,7 +2,7 @@
 import nifti from 'nifti-reader-js';
 import registerLoaders from './imageLoader/registerLoaders.js';
 
-let cornerstone = window.cornerstone;
+let cornerstone = null;
 let niftiReaderJs = nifti;
 
 const external = {
