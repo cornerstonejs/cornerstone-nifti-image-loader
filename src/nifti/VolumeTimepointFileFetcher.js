@@ -242,9 +242,23 @@ export default class VolumeTimepointFileFetcher {
       tempBuffer = inflator.result;
     }
 
+    const rawData = new DataView(tempBuffer.buffer);
+    let littleEndian = false;
+    const magicCookieVal = niftiReader.Utils.getIntAt(rawData, 0, littleEndian);
+
     // we have at least enough to know what kind of NiFTI is this
     if (niftiReader.isNIFTI2(tempBuffer.buffer)) {
-      imageData.headerOffset = _NIFTI2_HEADER_OFFSET;
+      if (magicCookieVal !== niftiReader.NIFTI2.MAGIC_COOKIE) {
+        littleEndian = true;
+      }
+
+      imageData.headerOffset = niftiReader.Utils.getLongAt(rawData, 168, littleEndian);
+    } else {
+      if (magicCookieVal !== niftiReader.NIFTI1.MAGIC_COOKIE) {
+        littleEndian = true;
+      }
+
+      imageData.headerOffset = niftiReader.Utils.getFloatAt(rawData, 108, littleEndian);
     }
 
     imageData.isHeaderTypeKnown = true;

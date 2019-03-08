@@ -1,4 +1,4 @@
-/*! cornerstone-nifti-image-loader - 1.0.0 - 2018-12-30 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
+/*! cornerstone-nifti-image-loader - 1.0.0 - 2019-03-07 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -17537,9 +17537,23 @@ var VolumeTimepointFileFetcher = function () {
         tempBuffer = inflator.result;
       }
 
+      var rawData = new DataView(tempBuffer.buffer);
+      var littleEndian = false;
+      var magicCookieVal = niftiReader.Utils.getIntAt(rawData, 0, littleEndian);
+
       // we have at least enough to know what kind of NiFTI is this
       if (niftiReader.isNIFTI2(tempBuffer.buffer)) {
-        imageData.headerOffset = _NIFTI2_HEADER_OFFSET;
+        if (magicCookieVal !== niftiReader.NIFTI2.MAGIC_COOKIE) {
+          littleEndian = true;
+        }
+
+        imageData.headerOffset = niftiReader.Utils.getLongAt(rawData, 168, littleEndian);
+      } else {
+        if (magicCookieVal !== niftiReader.NIFTI1.MAGIC_COOKIE) {
+          littleEndian = true;
+        }
+
+        imageData.headerOffset = niftiReader.Utils.getFloatAt(rawData, 108, littleEndian);
       }
 
       imageData.isHeaderTypeKnown = true;
