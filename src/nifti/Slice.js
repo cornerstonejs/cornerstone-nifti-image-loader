@@ -141,6 +141,15 @@ export default class Slice {
       ? cornerstone.renderColorImage
       : cornerstone.renderGrayscaleImage;
 
+    if (volumeMetaData.header.datatypeCode === 128) {
+      this.pixelData = new Uint8Array(this.pixelData.buffer);
+
+      // this should probably go elsewhere for RGB24 data
+      volumeMetaData.windowCenter = 128;
+      volumeMetaData.windowWidth = 256;
+      volumeMetaData.minPixelValue = 0;
+      volumeMetaData.maxPixelValue = 255;
+    }
 
     return {
       imageId: this.imageIdObject.url,

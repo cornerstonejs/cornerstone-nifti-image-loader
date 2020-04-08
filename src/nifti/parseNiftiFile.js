@@ -54,6 +54,22 @@ export function parseNiftiHeader (fileData) {
   };
 }
 
+function convert24bito32bit (typedArray8) {
+  const dview = new DataView(typedArray8.buffer);
+  const num_pixels = typedArray8.length / 3 * 4;
+  const image32bit = new Uint32Array(num_pixels);
+
+  for (let i = 0; i < num_pixels; i++) {
+    const b = dview.getUint8(i * 3);
+    const g = dview.getUint8(i * 3 + 1);
+    const r = dview.getUint8(i * 3 + 2);
+
+    image32bit[i] = (r << 16) + (g << 8) + (b) + 0xff000000;
+  }
+
+  return image32bit;
+}
+
 export function parseNiftiFile (fileData, metaData) {
   const nifti = external.niftiReader;
 
@@ -69,6 +85,10 @@ export function parseNiftiFile (fileData, metaData) {
 
   if (!metaData.header.littleEndian) {
     imageData = decodeNiFTIBigEndian(metaData.header.datatypeCode, imageData);
+  }
+
+  if (metaData.header.datatypeCode === nifti.NIFTI1.TYPE_RGB24) {
+    imageData = convert24bito32bit(imageData);
   }
 
   // determines the meta data that depends on the image data
@@ -171,7 +191,8 @@ function niftiDatatypeCodeToTypedArray (nifti, datatypeCode) {
     [nifti.NIFTI1.TYPE_FLOAT32]: Float32Array,
     [nifti.NIFTI1.TYPE_FLOAT64]: Float64Array,
     [nifti.NIFTI1.TYPE_RGB]: Uint8Array,
-    [nifti.NIFTI1.TYPE_RGBA]: Uint8Array
+    [nifti.NIFTI1.TYPE_RGBA]: Uint8Array,
+    [nifti.NIFTI1.TYPE_RGB24]: Uint32Array
   };
 
   return typedArrayConstructorMap[datatypeCode];
@@ -188,7 +209,8 @@ function isDataInFloat (nifti, datatypeCode) {
     [nifti.NIFTI1.TYPE_FLOAT32]: true,
     [nifti.NIFTI1.TYPE_FLOAT64]: true,
     [nifti.NIFTI1.TYPE_RGB]: false,
-    [nifti.NIFTI1.TYPE_RGBA]: false
+    [nifti.NIFTI1.TYPE_RGBA]: false,
+    [nifti.NIFTI1.TYPE_RGB24]: false
   };
 
   return isFloatTypeMap[datatypeCode];
@@ -206,7 +228,8 @@ function isDataInColors (nifti, dims, datatypeCode) {
     [nifti.NIFTI1.TYPE_FLOAT32]: false,
     [nifti.NIFTI1.TYPE_FLOAT64]: false,
     [nifti.NIFTI1.TYPE_RGB]: samplesPerPixel === 3,
-    [nifti.NIFTI1.TYPE_RGBA]: samplesPerPixel === 4
+    [nifti.NIFTI1.TYPE_RGBA]: samplesPerPixel === 4,
+    [nifti.NIFTI1.TYPE_RGB24]: true
   };
 
   return hasColorsMap[datatypeCode];

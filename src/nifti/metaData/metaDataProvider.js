@@ -111,9 +111,10 @@ function getPhotometricInterpretation (metaData, niftiReader) {
   const samplesPerPixel = getSamplesPerPixel(metaData);
   const isRGB = dataTypeCode === niftiReader.NIFTI1.TYPE_RGB && samplesPerPixel === 3;
   const isRGBA = dataTypeCode === niftiReader.NIFTI1.TYPE_RGBA && samplesPerPixel === 4;
+  const isRGB24 = dataTypeCode === niftiReader.NIFTI1.TYPE_RGB24;
 
   // we assume 'RGB' if nifti file has RGB or RGBA types and samplesPerPixel matches
-  if (isRGB || isRGBA) {
+  if (isRGB || isRGBA || isRGB24) {
     return 'RGB';
   }
 
