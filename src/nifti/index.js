@@ -45,7 +45,7 @@ const nifti = {
     return promise;
   },
 
-  loadVolumeTimepoint(imageId) {
+  loadVolumeTimepoint (imageId) {
     let promise;
 
     try {
@@ -114,7 +114,7 @@ const nifti = {
 
   streamingMode: false,
 
-  cornerstoneLoader(imageId) {
+  cornerstoneLoader (imageId) {
     if (this.streamingMode) {
       return this.loadVolumeTimepoint(imageId);
     }

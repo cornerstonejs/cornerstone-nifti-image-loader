@@ -1,9 +1,9 @@
 /* eslint import/extensions:0 */
-import nifti from 'nifti-reader-js';
+import { enhancedNiftiReader } from './niftiReader';
 import registerLoaders from './imageLoader/registerLoaders.js';
 
 let cornerstone = null;
-let niftiReaderJs = nifti;
+let niftiReaderJs = enhancedNiftiReader;
 
 const external = {
   set cornerstone (cs) {

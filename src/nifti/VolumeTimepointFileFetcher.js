@@ -12,7 +12,7 @@ const _NIFTI2_HEADER_OFFSET = 544;
  * Stream and returns a volume timepoint from a file
  */
 export default class VolumeTimepointFileFetcher {
-  constructor(imageIdObject, {
+  constructor (imageIdObject, {
     method = 'GET',
     responseType = 'arraybuffer',
     beforeSend = noop,
@@ -233,7 +233,7 @@ export default class VolumeTimepointFileFetcher {
     let tempBuffer = unInt8ArrayConcat(imageData.tmpBuffer, chunk);
 
     imageData.isCompressed = niftiReader.isCompressed(tempBuffer.buffer);
-    
+
     if (imageData.isCompressed) {
       const inflator = new pako.Inflate();
 
@@ -281,7 +281,7 @@ export default class VolumeTimepointFileFetcher {
     return new Uint8Array(buffer);
   }
 
-  static getVolumeTimepointDataLength(header) {
+  static getVolumeTimepointDataLength (header) {
     const dims = header.metaData.header.dims;
     const numBitsPerVoxel = header.metaData.header.numBitsPerVoxel;
     const timeDim = 1;

@@ -40,7 +40,7 @@ export default class VolumeAcquisitionStreamer {
     return VolumeAcquisitionStreamer.instance;
   }
 
-  acquireTimepoint(imageIdObject) {
+  acquireTimepoint (imageIdObject) {
 
     // if we have the timepoint already generated, return it immediately.
     const cachedVolume = this.volumeCache.getTimepoint(imageIdObject, imageIdObject.timePoint);
@@ -52,7 +52,7 @@ export default class VolumeAcquisitionStreamer {
     }
 
     const fetcherData = this.getFetcherData(imageIdObject);
-    
+
     if (fetcherData.timePointPromises[imageIdObject.timePoint]) {
       return fetcherData.timePointPromises[imageIdObject.timePoint];
     }
@@ -121,10 +121,10 @@ export default class VolumeAcquisitionStreamer {
     return volumeHeaderAcquiredPromise;
   }
 
-  [readImageData]({ headerData, metaData, volumeData }) {
+  [readImageData] ({ headerData, metaData, volumeData }) {
 
     const decompressedFileData = unInt8ArrayConcat(headerData, volumeData);
-    // TODO: /*metaData*/ read a fresh copy of the metadata. 
+    // TODO: /*metaData*/ read a fresh copy of the metadata.
     // The metaData.dataType.TypedArrayConstructor gets lost in next timepoint.
     const { imageData, metaData: moreMetaData } = parseNiftiFile(decompressedFileData.buffer, null);
 

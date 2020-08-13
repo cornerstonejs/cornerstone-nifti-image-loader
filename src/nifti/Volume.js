@@ -8,7 +8,13 @@ const changeVoxelStorageOrder = Symbol('changeVoxelStorageOrder');
 const convertRAStoLPS = Symbol('convertRAStoLPS');
 
 export default class Volume {
-  constructor (imageIdObject, metaData, imageDataNDarray, floatImageDataNDarray, isSingleTimepoint = false) {
+  constructor (
+    imageIdObject,
+    metaData,
+    imageDataNDarray,
+    floatImageDataNDarray,
+    isSingleTimepoint = false
+  ) {
     this.imageIdObject = imageIdObject;
     this.metaData = metaData;
     this.imageDataNDarray = imageDataNDarray;
@@ -18,7 +24,6 @@ export default class Volume {
     this[convertToNeurologicalView]();
     this[convertRAStoLPS]();
   }
-
 
   /**
    * ensureVoxelStorageInXYZ - Changes, if necessary, the order in which
@@ -32,29 +37,48 @@ export default class Volume {
     const orientationString = this.metaData.orientationString;
     const voxelStorageOrder = orientationString.slice(0, 3); // eg 'XYZ'
 
-    switch (voxelStorageOrder) {
-    case 'XYZ':
-      // no need to change anything...
-      break;
+    const voxelOrientation = new Array(3).fill(0);
+    // voxel index map of default orientation ([X, Y, Z] or [0,1,2])
+    const voxelIndexMap = {
+      X: 0,
+      Y: 1,
+      Z: 2
+    };
 
-    case 'XZY':
-      // changes the voxel ordering in the volume to be XYZ
-      this[changeVoxelStorageOrder]([0, 2, 1]);
-      break;
+    let validVoxelOrientation = true;
+    // fill voxelOrientation array with index of each dimension
 
-    case 'YZX':
-      // changes the voxel ordering in the volume to be XYZ
-      this[changeVoxelStorageOrder]([2, 0, 1]);
-      break;
+    for (
+      let voxelIndex = 0;
+      voxelIndex < voxelStorageOrder.length;
+      voxelIndex++
+    ) {
+      const voxel = voxelStorageOrder[voxelIndex];
 
-    default:
-      console.info(`The NIfTI file ${this.imageIdObject.filePath} has its
-        voxel values stored in ${voxelStorageOrder} order in the file,
-        which is a rare orientation unsupported by the viewer. Hence,
-        the viewer is not doing auto flipping to match the neurological view.`);
+      if (voxel in voxelIndexMap) {
+        // current index must receive  index of default orientation
+        voxelOrientation[voxelIndex] = voxelIndexMap[voxel];
+      } else {
+        validVoxelOrientation = false;
+        break;
+      }
+    }
+
+    if (validVoxelOrientation) {
+      // skip in case is already XYZ
+      if (voxelStorageOrder !== 'XYZ') {
+        this[changeVoxelStorageOrder](voxelOrientation);
+      }
+    } else {
+      console.info(
+        `The NIfTI file ${
+          this.imageIdObject.filePath
+        } has its\n        voxel values stored in ${
+          voxelStorageOrder
+        } order in the file,\n        which is a rare orientation unsupported by the viewer. Hence,\n        the viewer is not doing auto flipping to match the neurological view.`
+      );
     }
   }
-
 
   /**
    * changeVoxelStorageOrder - Changes the voxel ordering and the appropriate
@@ -70,7 +94,12 @@ export default class Volume {
     if (this.hasImageData) {
       this.imageDataNDarray = this.imageDataNDarray.transpose(x, y, z, 3);
       if (this.floatImageDataNDarray) {
-        this.floatImageDataNDarray = this.floatImageDataNDarray.transpose(x, y, z, 3);
+        this.floatImageDataNDarray = this.floatImageDataNDarray.transpose(
+          x,
+          y,
+          z,
+          3
+        );
       }
     }
 
@@ -84,7 +113,10 @@ export default class Volume {
     // changes the orientation matrix according to the dimension rearrangement
     const matrix = this.metaData.orientationMatrix;
     const matrixCopy = JSON.parse(JSON.stringify(matrix));
-    const matrixTranspose = ndarray([].concat(...matrixCopy), [4, 4]).transpose(1, 0);
+    const matrixTranspose = ndarray([].concat(...matrixCopy), [4, 4]).transpose(
+      1,
+      0
+    );
     const matrixTransposeLines = [
       matrixTranspose.pick(0, null),
       matrixTranspose.pick(1, null),
@@ -92,15 +124,31 @@ export default class Volume {
       matrixTranspose.pick(3, null)
     ];
 
-    matrix[0] = [matrixTransposeLines[x].get(0), matrixTransposeLines[x].get(1), matrixTransposeLines[x].get(2), matrixTransposeLines[3].get(x)];
-    matrix[1] = [matrixTransposeLines[y].get(0), matrixTransposeLines[y].get(1), matrixTransposeLines[y].get(2), -matrixTransposeLines[3].get(y)];
-    matrix[2] = [matrixTransposeLines[z].get(0), matrixTransposeLines[z].get(1), matrixTransposeLines[z].get(2), -matrixTransposeLines[3].get(z)];
+    matrix[0] = [
+      matrixTransposeLines[x].get(0),
+      matrixTransposeLines[x].get(1),
+      matrixTransposeLines[x].get(2),
+      matrixTransposeLines[3].get(x)
+    ];
+    matrix[1] = [
+      matrixTransposeLines[y].get(0),
+      matrixTransposeLines[y].get(1),
+      matrixTransposeLines[y].get(2),
+      -matrixTransposeLines[3].get(y)
+    ];
+    matrix[2] = [
+      matrixTransposeLines[z].get(0),
+      matrixTransposeLines[z].get(1),
+      matrixTransposeLines[z].get(2),
+      -matrixTransposeLines[3].get(z)
+    ];
 
     // changes the pixel spacing according to the new order
     [...this.metaData.pixelSpacing] = [
       this.metaData.pixelSpacing[x],
       this.metaData.pixelSpacing[y],
-      this.metaData.pixelSpacing[z]];
+      this.metaData.pixelSpacing[z]
+    ];
 
     // changes the order of the signs of the axes
     const orientationString = this.metaData.orientationString;
@@ -109,7 +157,6 @@ export default class Volume {
     senses = [senses[x], senses[y], senses[z]].join('');
     this.metaData.orientationString = `XYZ${senses}`;
   }
-
 
   /**
    * convertToNeurologicalView - Changes the data array and the
@@ -159,11 +206,13 @@ export default class Volume {
       }
     }
 
-
     if (this.hasImageData) {
       this.imageDataNDarray = this.imageDataNDarray.step(...steps, 1);
       if (this.floatImageDataNDarray) {
-        this.floatImageDataNDarray = this.floatImageDataNDarray.step(...steps, 1);
+        this.floatImageDataNDarray = this.floatImageDataNDarray.step(
+          ...steps,
+          1
+        );
       }
     }
   }
@@ -197,12 +246,20 @@ export default class Volume {
   }
 
   get hasImageData () {
-    return this.imageDataNDarray && this.imageDataNDarray.data && this.imageDataNDarray.data.byteLength > 0;
+    return (
+      this.imageDataNDarray &&
+      this.imageDataNDarray.data &&
+      this.imageDataNDarray.data.byteLength > 0
+    );
   }
 
   get sizeInBytes () {
-    const integerArraySize = this.imageDataNDarray ? this.imageDataNDarray.data.byteLength : 0;
-    const floatArraySize = this.floatImageDataView ? this.floatImageDataView.data.byteLength : 0;
+    const integerArraySize = this.imageDataNDarray
+      ? this.imageDataNDarray.data.byteLength
+      : 0;
+    const floatArraySize = this.floatImageDataView
+      ? this.floatImageDataView.data.byteLength
+      : 0;
 
     return integerArraySize + floatArraySize;
   }
