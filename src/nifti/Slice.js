@@ -19,7 +19,7 @@ const getPatientPosition = Symbol('getPatientPosition');
  * Cornerstone Image Object.
  */
 export default class Slice {
-  constructor(volume, imageIdObject, isSingleTimepoint = false) {
+  constructor (volume, imageIdObject, isSingleTimepoint = false) {
     this.volume = volume;
     this.imageIdObject = imageIdObject;
     this.dimension = imageIdObject.slice.dimension;
