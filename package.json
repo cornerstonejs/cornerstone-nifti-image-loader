@@ -1,5 +1,5 @@
 {
-  "name": "cornerstone-nifti-image-loader",
+  "name": "@cornerstonejs/nifti-image-loader",
   "version": "1.0.0",
   "description": "Cornerstone ImageLoader for NIfTI",
   "keywords": [
@@ -10,14 +10,17 @@
     "imaging",
     "neuroimaging"
   ],
-  "author": "Flywheel Exchange, LLC",
-  "homepage": "https://github.com/flywheel-io/cornerstone-nifti-image-loader",
+  "author": "Cornerstone.js Core Team",
+  "homepage": "https://github.com/cornerstonejs/cornerstone-nifti-image-loader",
   "license": "MIT",
   "main": "./dist/cornerstoneNIFTIImageLoader.min.js",
   "module": "src/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flywheel-io/cornerstone-nifti-image-loader.git"
+    "url": "https://github.com/cornerstonejs/cornerstone-nifti-image-loader.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "opn http://localhost:8008/examples/orientation-check.html && http-server -p 8008 -c-1",
