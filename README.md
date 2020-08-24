@@ -6,6 +6,7 @@ for the Cornerstone library
 ## Running Locally
 
 Use two terminals:
+
 - `npm run webpack:watch` in one terminal
 - `npm run dev` in the second
 
@@ -31,7 +32,7 @@ determine how the new version calculated.
     <td>
       perf(pencil): remove graphiteWidth option<br />
       <br />
-      BREAKING CHANGE: The graphiteWidth option has been removed. 
+      BREAKING CHANGE: The graphiteWidth option has been removed.
       The default graphite width of 10mm is always used for performance reasons.
     </td>
     <td>
