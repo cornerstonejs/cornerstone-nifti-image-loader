@@ -1,14 +1,14 @@
 /* eslint import/extensions: off */
-import Slice from "./Slice.js";
-import ndarray from "ndarray";
+import Slice from './Slice.js';
+import ndarray from 'ndarray';
 
-const convertToNeurologicalView = Symbol("convertToNeurologicalView");
-const ensureVoxelStorageInXYZ = Symbol("ensureVoxelStorageInXYZ");
-const changeVoxelStorageOrder = Symbol("changeVoxelStorageOrder");
-const convertRAStoLPS = Symbol("convertRAStoLPS");
+const convertToNeurologicalView = Symbol('convertToNeurologicalView');
+const ensureVoxelStorageInXYZ = Symbol('ensureVoxelStorageInXYZ');
+const changeVoxelStorageOrder = Symbol('changeVoxelStorageOrder');
+const convertRAStoLPS = Symbol('convertRAStoLPS');
 
 export default class Volume {
-  constructor(
+  constructor (
     imageIdObject,
     metaData,
     imageDataNDarray,
@@ -33,7 +33,7 @@ export default class Volume {
    * voxel matrix lengths.
    *
    */
-  [ensureVoxelStorageInXYZ]() {
+  [ensureVoxelStorageInXYZ] () {
     const orientationString = this.metaData.orientationString;
     const voxelStorageOrder = orientationString.slice(0, 3); // eg 'XYZ'
 
@@ -58,6 +58,7 @@ export default class Volume {
       if (voxel in defaultVoxelIndexMap) {
         const defaultVoxelIndex = defaultVoxelIndexMap[voxel];
         // assign current voxel index to its voxel`s default position
+
         voxelOrientation[defaultVoxelIndex] = voxelIndex;
       } else {
         validVoxelOrientation = false;
@@ -67,7 +68,7 @@ export default class Volume {
 
     if (validVoxelOrientation) {
       // skip in case is already XYZ
-      if (voxelStorageOrder !== "XYZ") {
+      if (voxelStorageOrder !== 'XYZ') {
         this[changeVoxelStorageOrder](voxelOrientation);
       }
     } else {
@@ -86,7 +87,7 @@ export default class Volume {
    * @param  {type} y  index of patient's 'y'.
    * @param  {type} z] index of patient's 'z'.
    */
-  [changeVoxelStorageOrder]([x, y, z]) {
+  [changeVoxelStorageOrder] ([x, y, z]) {
     // changes the order in which voxel data is stored
     if (this.hasImageData) {
       this.imageDataNDarray = this.imageDataNDarray.transpose(x, y, z, 3);
@@ -151,7 +152,7 @@ export default class Volume {
     const orientationString = this.metaData.orientationString;
     let senses = orientationString.slice(3, 6); // eg, '-++'
 
-    senses = [senses[x], senses[y], senses[z]].join("");
+    senses = [senses[x], senses[y], senses[z]].join('');
     this.metaData.orientationString = `XYZ${senses}`;
   }
 
@@ -161,7 +162,7 @@ export default class Volume {
    * right of the screen, anterior on the top, or to the right.
    *
    */
-  [convertToNeurologicalView]() {
+  [convertToNeurologicalView] () {
     // the orientationString is created by NIFTI-Reader-JS and has 6 characters
     // (e.g., XYZ+--), in which the first 3 represent the order in
     // which the patient dimensions are stored in the
@@ -174,10 +175,10 @@ export default class Volume {
     const senses = this.metaData.orientationString.slice(3, 6); // eg, '-++'
     const steps = [1, 1, 1];
 
-    if (this.metaData.orientationString.slice(0, 3) === "XYZ") {
+    if (this.metaData.orientationString.slice(0, 3) === 'XYZ') {
       // if 'X-', we need to flip x axis so patient's right is
       // shown on the right
-      if (senses[0] === "-") {
+      if (senses[0] === '-') {
         matrix[0][0] *= -1;
         matrix[0][1] *= -1;
         matrix[0][2] *= -1;
@@ -186,7 +187,7 @@ export default class Volume {
       }
       // if 'Y+' we need to flip y axis so patient's anterior is shown on the
       // top
-      if (senses[1] === "+") {
+      if (senses[1] === '+') {
         matrix[1][0] *= -1;
         matrix[1][1] *= -1;
         matrix[1][2] *= -1;
@@ -194,7 +195,7 @@ export default class Volume {
         steps[1] = -1;
       }
       // if 'Z+' we need to flip z axis so patient's head is shown on the top
-      if (senses[2] === "+") {
+      if (senses[2] === '+') {
         matrix[2][0] *= -1;
         matrix[2][1] *= -1;
         matrix[2][2] *= -1;
@@ -222,7 +223,7 @@ export default class Volume {
    * flipping the signs of the first 2 rows.
    *
    */
-  [convertRAStoLPS]() {
+  [convertRAStoLPS] () {
     const matrix = this.metaData.orientationMatrix;
 
     // flipping the first row is equivalent to doing a 180deg rotation on 'z',
@@ -238,11 +239,11 @@ export default class Volume {
     matrix[1][3] *= -1;
   }
 
-  slice(imageIdObject) {
+  slice (imageIdObject) {
     return new Slice(this, imageIdObject, this.isSingleTimepoint);
   }
 
-  get hasImageData() {
+  get hasImageData () {
     return (
       this.imageDataNDarray &&
       this.imageDataNDarray.data &&
@@ -250,7 +251,7 @@ export default class Volume {
     );
   }
 
-  get sizeInBytes() {
+  get sizeInBytes () {
     const integerArraySize = this.imageDataNDarray
       ? this.imageDataNDarray.data.byteLength
       : 0;
