@@ -39,7 +39,7 @@ export default class Volume {
 
     const voxelOrientation = new Array(3).fill(0);
     // voxel index map of default orientation ([X, Y, Z] or [0,1,2])
-    const voxelIndexMap = {
+    const defaultVoxelIndexMap = {
       X: 0,
       Y: 1,
       Z: 2
@@ -55,9 +55,11 @@ export default class Volume {
     ) {
       const voxel = voxelStorageOrder[voxelIndex];
 
-      if (voxel in voxelIndexMap) {
-        // current index must receive  index of default orientation
-        voxelOrientation[voxelIndex] = voxelIndexMap[voxel];
+      if (voxel in defaultVoxelIndexMap) {
+        const defaultVoxelIndex = defaultVoxelIndexMap[voxel];
+        // assign current voxel index to its voxel`s default position
+
+        voxelOrientation[defaultVoxelIndex] = voxelIndex;
       } else {
         validVoxelOrientation = false;
         break;
@@ -71,11 +73,7 @@ export default class Volume {
       }
     } else {
       console.info(
-        `The NIfTI file ${
-          this.imageIdObject.filePath
-        } has its\n        voxel values stored in ${
-          voxelStorageOrder
-        } order in the file,\n        which is a rare orientation unsupported by the viewer. Hence,\n        the viewer is not doing auto flipping to match the neurological view.`
+        `The NIfTI file ${this.imageIdObject.filePath} has its\n        voxel values stored in ${voxelStorageOrder} order in the file,\n        which is a rare orientation unsupported by the viewer. Hence,\n        the viewer is not doing auto flipping to match the neurological view.`
       );
     }
   }
