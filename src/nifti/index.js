@@ -124,7 +124,8 @@ const nifti = {
 
   register (cornerstone) {
     cornerstone.registerImageLoader('nifti', (imageId) => this.cornerstoneLoader(imageId, this));
-    cornerstone.metaData.addProvider(metaDataProvider);
+    // consider nifti provider to have higher priority (usually apps, as OHIF, has providers priority less than 9999)
+    cornerstone.metaData.addProvider(metaDataProvider, 10000);
   },
 
   configure (loaderOptions) {
