@@ -1,5 +1,6 @@
 import { external } from '../externalModules.js';
 import decodeNiFTIBigEndian from '../shared/niftiBigEndianDecoder.js';
+import normalizeInvalid from '../shared/normalizeInvalid.js';
 
 export function parseNiftiHeader (fileData) {
   const nifti = external.niftiReader;
@@ -65,7 +66,7 @@ export function parseNiftiFile (fileData, metaData) {
   const arraybuffer = nifti.readImage(metaData.header, fileData);
 
   // reads the image data using nifti-reader-js and puts it in a typed array
-  let imageData = new TypedArrayConstructor(arraybuffer);
+  let imageData = normalizeInvalid(metaData.header.datatypeCode, new TypedArrayConstructor(arraybuffer));
 
   if (!metaData.header.littleEndian) {
     imageData = decodeNiFTIBigEndian(metaData.header.datatypeCode, imageData);
