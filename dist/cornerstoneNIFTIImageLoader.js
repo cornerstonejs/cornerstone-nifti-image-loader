@@ -1,4 +1,4 @@
-/*! cornerstone-nifti-image-loader - 1.0.0 - 2019-06-19 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
+/*! cornerstone-nifti-image-loader - 1.0.0 - 2020-04-08 | (c) 2018 Flywheel Exchange, LLC | https://github.com/flywheel-io/cornerstone-nifti-image-loader */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -70,6 +70,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/ 	// webpack-livereload-plugin
+/******/ 	(function() {
+/******/ 	  if (typeof window === "undefined") { return };
+/******/ 	  var id = "webpack-livereload-plugin-script";
+/******/ 	  if (document.getElementById(id)) { return; }
+/******/ 	  var el = document.createElement("script");
+/******/ 	  el.id = id;
+/******/ 	  el.async = true;
+/******/ 	  el.src = "//" + location.hostname + ":45001/livereload.js";
+/******/ 	  document.getElementsByTagName("head")[0].appendChild(el);
+/******/ 	}());
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 41);
 /******/ })
@@ -3407,6 +3418,22 @@ function parseNiftiHeader(fileData) {
   };
 }
 
+function convert24bito32bit(typedArray8) {
+  var dview = new DataView(typedArray8.buffer);
+  var num_pixels = typedArray8.length / 3 * 4;
+  var image32bit = new Uint32Array(num_pixels);
+
+  for (var i = 0; i < num_pixels; i++) {
+    var b = dview.getUint8(i * 3);
+    var g = dview.getUint8(i * 3 + 1);
+    var r = dview.getUint8(i * 3 + 2);
+
+    image32bit[i] = (r << 16) + (g << 8) + b + 0xff000000;
+  }
+
+  return image32bit;
+}
+
 function parseNiftiFile(fileData, metaData) {
   var nifti = _externalModules.external.niftiReader;
 
@@ -3422,6 +3449,10 @@ function parseNiftiFile(fileData, metaData) {
 
   if (!metaData.header.littleEndian) {
     imageData = (0, _niftiBigEndianDecoder2.default)(metaData.header.datatypeCode, imageData);
+  }
+
+  if (metaData.header.datatypeCode === nifti.NIFTI1.TYPE_RGB24) {
+    imageData = convert24bito32bit(imageData);
   }
 
   // determines the meta data that depends on the image data
@@ -3511,7 +3542,7 @@ function getOrientationMatrix(header) {
 function niftiDatatypeCodeToTypedArray(nifti, datatypeCode) {
   var _typedArrayConstructo;
 
-  var typedArrayConstructorMap = (_typedArrayConstructo = {}, _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_UINT8, Uint8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_UINT16, Uint16Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_UINT32, Uint32Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_INT8, Int8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_INT16, Int16Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_INT32, Int32Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_FLOAT32, Float32Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_FLOAT64, Float64Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_RGB, Uint8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_RGBA, Uint8Array), _typedArrayConstructo);
+  var typedArrayConstructorMap = (_typedArrayConstructo = {}, _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_UINT8, Uint8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_UINT16, Uint16Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_UINT32, Uint32Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_INT8, Int8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_INT16, Int16Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_INT32, Int32Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_FLOAT32, Float32Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_FLOAT64, Float64Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_RGB, Uint8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_RGBA, Uint8Array), _defineProperty(_typedArrayConstructo, nifti.NIFTI1.TYPE_RGB24, Uint32Array), _typedArrayConstructo);
 
   return typedArrayConstructorMap[datatypeCode];
 }
@@ -3519,7 +3550,7 @@ function niftiDatatypeCodeToTypedArray(nifti, datatypeCode) {
 function isDataInFloat(nifti, datatypeCode) {
   var _isFloatTypeMap;
 
-  var isFloatTypeMap = (_isFloatTypeMap = {}, _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_UINT8, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_UINT16, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_UINT32, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_INT8, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_INT16, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_INT32, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_FLOAT32, true), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_FLOAT64, true), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_RGB, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_RGBA, false), _isFloatTypeMap);
+  var isFloatTypeMap = (_isFloatTypeMap = {}, _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_UINT8, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_UINT16, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_UINT32, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_INT8, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_INT16, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_INT32, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_FLOAT32, true), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_FLOAT64, true), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_RGB, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_RGBA, false), _defineProperty(_isFloatTypeMap, nifti.NIFTI1.TYPE_RGB24, false), _isFloatTypeMap);
 
   return isFloatTypeMap[datatypeCode];
 }
@@ -3528,7 +3559,7 @@ function isDataInColors(nifti, dims, datatypeCode) {
   var _hasColorsMap;
 
   var samplesPerPixel = getSamplesPerPixel(dims);
-  var hasColorsMap = (_hasColorsMap = {}, _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_UINT8, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_UINT16, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_UINT32, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_INT8, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_INT16, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_INT32, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_FLOAT32, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_FLOAT64, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_RGB, samplesPerPixel === 3), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_RGBA, samplesPerPixel === 4), _hasColorsMap);
+  var hasColorsMap = (_hasColorsMap = {}, _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_UINT8, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_UINT16, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_UINT32, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_INT8, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_INT16, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_INT32, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_FLOAT32, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_FLOAT64, false), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_RGB, samplesPerPixel === 3), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_RGBA, samplesPerPixel === 4), _defineProperty(_hasColorsMap, nifti.NIFTI1.TYPE_RGB24, true), _hasColorsMap);
 
   return hasColorsMap[datatypeCode];
 }
@@ -8648,9 +8679,10 @@ function getPhotometricInterpretation(metaData, niftiReader) {
   var samplesPerPixel = getSamplesPerPixel(metaData);
   var isRGB = dataTypeCode === niftiReader.NIFTI1.TYPE_RGB && samplesPerPixel === 3;
   var isRGBA = dataTypeCode === niftiReader.NIFTI1.TYPE_RGBA && samplesPerPixel === 4;
+  var isRGB24 = dataTypeCode === niftiReader.NIFTI1.TYPE_RGB24;
 
   // we assume 'RGB' if nifti file has RGB or RGBA types and samplesPerPixel matches
-  if (isRGB || isRGBA) {
+  if (isRGB || isRGBA || isRGB24) {
     return 'RGB';
   }
 
@@ -16326,6 +16358,16 @@ var Slice = function () {
       var sliceMetaData = this.metaData;
       var cornerstone = _externalModules.external.cornerstone;
       var render = volumeMetaData.dataType.isDataInColors ? cornerstone.renderColorImage : cornerstone.renderGrayscaleImage;
+
+      if (volumeMetaData.header.datatypeCode === 128) {
+        this.pixelData = new Uint8Array(this.pixelData.buffer);
+
+        // this should probably go elsewhere for RGB24 data
+        volumeMetaData.windowCenter = 128;
+        volumeMetaData.windowWidth = 256;
+        volumeMetaData.minPixelValue = 0;
+        volumeMetaData.maxPixelValue = 255;
+      }
 
       return {
         imageId: this.imageIdObject.url,
