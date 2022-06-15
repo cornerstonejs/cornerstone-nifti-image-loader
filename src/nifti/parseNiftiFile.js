@@ -174,7 +174,9 @@ function niftiDatatypeCodeToTypedArray (nifti, datatypeCode) {
     [nifti.NIFTI1.TYPE_RGB]: Uint8Array,
     [nifti.NIFTI1.TYPE_RGBA]: Uint8Array
   };
-
+  if (!typedArrayConstructorMap.hasOwnProperty(datatypeCode)) {
+    throw new Error(`Could not parse NIfTI file. Datatype Code (${datatypeCode}) is not supported for this image.`);
+  }
   return typedArrayConstructorMap[datatypeCode];
 }
 

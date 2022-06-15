@@ -72,7 +72,7 @@ export default class VolumeTimepointFileFetcher {
   }
 
   static runStreamer (imageIdObject, imageData) {
-    imageData.streamer.stream(imageIdObject, (chunk) => {
+    return imageData.streamer.stream(imageIdObject, (chunk) => {
       if (!imageData.headerParsed) {
         if (!VolumeTimepointFileFetcher.tryParseHeader(imageData, chunk)) {
           return;
@@ -94,6 +94,9 @@ export default class VolumeTimepointFileFetcher {
       VolumeTimepointFileFetcher.addToImageDataBuffer(imageData, chunk);
 
       VolumeTimepointFileFetcher.evaluatePromises(imageData);
+    }).catch((error) => {
+      imageData.headerPromiseMethods.reject(error);
+      throw error;
     });
   }
 

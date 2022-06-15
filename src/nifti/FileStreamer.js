@@ -40,7 +40,11 @@ export default class FileStreamer {
               total: contentLength
             }
           });
-          handleChunk(chunk, imageIdObject);
+          try {
+            handleChunk(chunk, imageIdObject);
+          } catch (error) {
+            reject(error);
+          }
         });
 
         response.on('end', () => {
