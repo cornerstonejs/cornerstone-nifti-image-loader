@@ -92,6 +92,8 @@ const nifti = {
           metaDataManager.add(imageIdObject.url, slice.compoundMetaData);
 
           return slice.compoundMetaData;
+        }).catch((error) => {
+          throw error;
         });
 
     } catch (error) {

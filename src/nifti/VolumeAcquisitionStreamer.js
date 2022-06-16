@@ -102,16 +102,20 @@ export default class VolumeAcquisitionStreamer {
       }
 
       const fetcher = fetcherData.volumeFetcher;
-      const fileFetchedPromise = fetcher.getHeaderPromise();
+       try {
+        const fileFetchedPromise = fetcher.getHeaderPromise();
 
-      fileFetchedPromise.
-        // creates the volume: metadata + image data
-        then((data) => this[createVolume](data, imageIdObject)).
-        // adds the volume to the cache
-        then((data) => this[cacheVolume](data, imageIdObject)).
-        // fulfills the volumeAcquiredPromise
-        then((data) => resolve(data)).
-        catch(reject);
+        fileFetchedPromise.
+          // creates the volume: metadata + image data
+          then((data) => this[createVolume](data, imageIdObject)).
+          // adds the volume to the cache
+          then((data) => this[cacheVolume](data, imageIdObject)).
+          // fulfills the volumeAcquiredPromise
+          then((data) => resolve(data)).
+          catch(reject);
+       } catch (error) {
+        reject(error);
+      }
     });
 
     // save this promise to the promise cache
