@@ -223,15 +223,6 @@ export default class VolumeTimepointFileFetcher {
 
       return canParse;
     }
-
-    if (imageData.tmpBuffer.length + chunk.length < imageData.headerOffset) {
-      // we don't have enough data, lets add it and wait for next chunk
-      imageData.tmpBuffer = unInt8ArrayConcat(imageData.tmpBuffer, chunk);
-
-      return false;
-    }
-
-
     // we don't want to add the chunk now to tmpBuffer/buffer. This will be handlded by recursion
     let tempBuffer = unInt8ArrayConcat(imageData.tmpBuffer, chunk);
 
@@ -245,6 +236,12 @@ export default class VolumeTimepointFileFetcher {
       tempBuffer = inflator.result;
     }
 
+    if (tempBuffer.length < imageData.headerOffset) {
+      // we don't have enough data, lets add it and wait for next chunk
+      imageData.tmpBuffer = unInt8ArrayConcat(imageData.tmpBuffer, chunk);
+
+      return false;
+    }
     const rawData = new DataView(tempBuffer.buffer);
     let littleEndian = false;
     const magicCookieVal = niftiReader.Utils.getIntAt(rawData, 0, littleEndian);
