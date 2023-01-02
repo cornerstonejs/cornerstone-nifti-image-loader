@@ -43,12 +43,11 @@ export default class VolumeAcquisitionStreamer {
   acquireTimepoint (imageIdObject) {
 
     // if we have the timepoint already generated, return it immediately.
-    const cachedVolume = this.volumeCache.getTimepoint(imageIdObject, imageIdObject.timePoint);
+    const cachedVolume = this.volumeCache.get(imageIdObject);
 
     if (cachedVolume && cachedVolume.hasImageData) {
-      Promise.resolve(cachedVolume);
 
-      return;
+      return Promise.resolve(cachedVolume);
     }
 
     const fetcherData = this.getFetcherData(imageIdObject);
@@ -89,20 +88,20 @@ export default class VolumeAcquisitionStreamer {
     if (fetcherData.headerPromise) {
       return fetcherData.headerPromise;
     }
+    const cachedVolume = this.volumeCache.get(imageIdObject);
+
+    if (cachedVolume) {
+
+      return Promise.resolve(cachedVolume);
+    }
 
     // if no one has requested the header of this volume yet, we create a
     // promise to acquire it
     const volumeHeaderAcquiredPromise = new Promise((resolve, reject) => {
-      const cachedVolume = this.volumeCache.getTimepoint(imageIdObject, imageIdObject.timePoint);
-
-      if (cachedVolume) {
-        resolve(cachedVolume);
-
-        return;
-      }
 
       const fetcher = fetcherData.volumeFetcher;
-       try {
+
+      try {
         const fileFetchedPromise = fetcher.getHeaderPromise();
 
         fileFetchedPromise.
@@ -113,7 +112,7 @@ export default class VolumeAcquisitionStreamer {
           // fulfills the volumeAcquiredPromise
           then((data) => resolve(data)).
           catch(reject);
-       } catch (error) {
+      } catch (error) {
         reject(error);
       }
     });
