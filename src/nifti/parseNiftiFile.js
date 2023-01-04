@@ -1,6 +1,7 @@
 import { external } from '../externalModules.js';
 import decodeNiFTIBigEndian from '../shared/niftiBigEndianDecoder.js';
 import normalizeInvalid from '../shared/normalizeInvalid.js';
+import _ from 'lodash';
 
 export function parseNiftiHeader (fileData) {
   const nifti = external.niftiReader;
@@ -36,7 +37,7 @@ export function parseNiftiHeader (fileData) {
     isDataInColors: isDataInColors(nifti, header.dims, header.datatypeCode)
   };
   const pixelSpacing = header.pixDims.slice(1, 4);
-  const orientationMatrix = getOrientationMatrix(header);
+  const orientationMatrix = _.cloneDeep(getOrientationMatrix(header));
   const orientationString = header.convertNiftiSFormToNEMA(orientationMatrix);
 
   return {
@@ -127,7 +128,7 @@ function ensureUnitInMillimeters (nifti, header) {
 
 function getOrientationMatrix (header) {
   if (header.affine && header.sform_code > 0) {
-    return header.affine.map((row) => row.slice());
+    return header.affine;
   }
 
   if (header.qform_code > 0) {
