@@ -127,7 +127,7 @@ function ensureUnitInMillimeters (nifti, header) {
 
 function getOrientationMatrix (header) {
   if (header.affine && header.sform_code > 0) {
-    return header.affine;
+    return header.affine.map((row) => row.slice());
   }
 
   if (header.qform_code > 0) {

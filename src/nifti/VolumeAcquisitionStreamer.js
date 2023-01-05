@@ -86,8 +86,10 @@ export default class VolumeAcquisitionStreamer {
   acquireHeaderOnly (imageIdObject, isRangeRead = true) {
     const fetcherData = this.getFetcherData(imageIdObject);
 
-    if (fetcherData.headerPromise) {
-      return fetcherData.headerPromise;
+    const headerPromise = fetcherData.headerPromise || fetcherData.headerOnlyPromise;
+
+    if (headerPromise) {
+      return headerPromise;
     }
 
     // if no one has requested the header of this volume yet, we create a
