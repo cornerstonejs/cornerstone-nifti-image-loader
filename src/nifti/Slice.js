@@ -137,9 +137,6 @@ export default class Slice {
     const volumeMetaData = this.volume.metaData;
     const sliceMetaData = this.metaData;
     const cornerstone = external.cornerstone;
-    const render = volumeMetaData.dataType.isDataInColors
-      ? cornerstone.renderColorImage
-      : cornerstone.renderGrayscaleImage;
 
 
     return {
@@ -161,8 +158,7 @@ export default class Slice {
       windowWidth: volumeMetaData.windowWidth,
       floatPixelData: this.floatPixelData,
       decodeTimeInMS: 0,
-      getPixelData: () => this.pixelData,
-      render
+      getPixelData: () => this.pixelData
     };
   }
 
